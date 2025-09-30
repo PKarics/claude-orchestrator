@@ -1,10 +1,10 @@
-# AAI-006: Deploy to Production
+# TASK-006: Deploy to Production
 
 **Type:** Task
 **Priority:** Medium
 **Story Points:** 8
 **Sprint:** Deployment
-**Dependencies:** AAI-005
+**Dependencies:** TASK-005
 
 ## Description
 
@@ -322,14 +322,14 @@ EOF
 
 ## Subtasks
 
-- [ ] AAI-006-1: Create managed Redis instance
-- [ ] AAI-006-2: Create and configure droplet
-- [ ] AAI-006-3: Deploy orchestrator with Docker
-- [ ] AAI-006-4: Configure Nginx reverse proxy
-- [ ] AAI-006-5: Setup SSL certificate
-- [ ] AAI-006-6: Deploy worker instance
-- [ ] AAI-006-7: Configure monitoring and alerts
-- [ ] AAI-006-8: Test production system
+- [ ] TASK-006-1: Create managed Redis instance
+- [ ] TASK-006-2: Create and configure droplet
+- [ ] TASK-006-3: Deploy orchestrator with Docker
+- [ ] TASK-006-4: Configure Nginx reverse proxy
+- [ ] TASK-006-5: Setup SSL certificate
+- [ ] TASK-006-6: Deploy worker instance
+- [ ] TASK-006-7: Configure monitoring and alerts
+- [ ] TASK-006-8: Test production system
 
 ## Definition of Done
 

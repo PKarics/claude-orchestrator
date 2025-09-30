@@ -1,10 +1,10 @@
-# AAI-007: Implement Testing Suite
+# TASK-007: Implement Testing Suite
 
 **Type:** Task
 **Priority:** High
 **Story Points:** 5
 **Sprint:** Quality Assurance
-**Dependencies:** AAI-004
+**Dependencies:** TASK-004
 
 ## Description
 
@@ -369,14 +369,14 @@ jobs:
 
 ## Subtasks
 
-- [ ] AAI-007-1: Configure Jest
-- [ ] AAI-007-2: Write TasksService unit tests
-- [ ] AAI-007-3: Write QueueService unit tests
-- [ ] AAI-007-4: Write API integration tests
-- [ ] AAI-007-5: Create E2E system test script
-- [ ] AAI-007-6: Generate coverage report
-- [ ] AAI-007-7: Configure CI/CD (optional)
-- [ ] AAI-007-8: Document testing procedures
+- [ ] TASK-007-1: Configure Jest
+- [ ] TASK-007-2: Write TasksService unit tests
+- [ ] TASK-007-3: Write QueueService unit tests
+- [ ] TASK-007-4: Write API integration tests
+- [ ] TASK-007-5: Create E2E system test script
+- [ ] TASK-007-6: Generate coverage report
+- [ ] TASK-007-7: Configure CI/CD (optional)
+- [ ] TASK-007-8: Document testing procedures
 
 ## Definition of Done
 

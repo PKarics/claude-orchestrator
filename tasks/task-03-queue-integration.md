@@ -1,10 +1,10 @@
-# AAI-003: Integrate BullMQ Queue System
+# TASK-003: Integrate BullMQ Queue System
 
 **Type:** Task
 **Priority:** High
 **Story Points:** 5
 **Sprint:** Core Infrastructure
-**Dependencies:** AAI-002
+**Dependencies:** TASK-002
 
 ## Description
 
@@ -204,13 +204,13 @@ redis-cli -a $REDIS_PASSWORD LLEN claude-tasks
 
 ## Subtasks
 
-- [ ] AAI-003-1: Configure Redis connection
-- [ ] AAI-003-2: Create QueueService with BullMQ
-- [ ] AAI-003-3: Implement task queuing on creation
-- [ ] AAI-003-4: Implement result worker
-- [ ] AAI-003-5: Update TasksController to use queue
-- [ ] AAI-003-6: Add queue stats to API
-- [ ] AAI-003-7: Update health check with Redis status
+- [ ] TASK-003-1: Configure Redis connection
+- [ ] TASK-003-2: Create QueueService with BullMQ
+- [ ] TASK-003-3: Implement task queuing on creation
+- [ ] TASK-003-4: Implement result worker
+- [ ] TASK-003-5: Update TasksController to use queue
+- [ ] TASK-003-6: Add queue stats to API
+- [ ] TASK-003-7: Update health check with Redis status
 
 ## Definition of Done
 

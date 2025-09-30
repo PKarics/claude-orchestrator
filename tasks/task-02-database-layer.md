@@ -1,10 +1,10 @@
-# AAI-002: Implement Database Layer with TypeORM
+# TASK-002: Implement Database Layer with TypeORM
 
 **Type:** Task
 **Priority:** High
 **Story Points:** 5
 **Sprint:** Core Infrastructure
-**Dependencies:** AAI-001
+**Dependencies:** TASK-001
 
 ## Description
 
@@ -269,13 +269,13 @@ curl http://localhost:3000/tasks/stats
 
 ## Subtasks
 
-- [ ] AAI-002-1: Configure TypeORM with SQLite
-- [ ] AAI-002-2: Create Task entity with indexes
-- [ ] AAI-002-3: Create DTOs with validation
-- [ ] AAI-002-4: Implement TasksService CRUD methods
-- [ ] AAI-002-5: Create TasksController REST endpoints
-- [ ] AAI-002-6: Update AppModule imports
-- [ ] AAI-002-7: Test all endpoints
+- [ ] TASK-002-1: Configure TypeORM with SQLite
+- [ ] TASK-002-2: Create Task entity with indexes
+- [ ] TASK-002-3: Create DTOs with validation
+- [ ] TASK-002-4: Implement TasksService CRUD methods
+- [ ] TASK-002-5: Create TasksController REST endpoints
+- [ ] TASK-002-6: Update AppModule imports
+- [ ] TASK-002-7: Test all endpoints
 
 ## Definition of Done
 

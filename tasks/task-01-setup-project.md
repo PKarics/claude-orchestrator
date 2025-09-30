@@ -1,4 +1,4 @@
-# AAI-001: Setup Project Structure and Configuration
+# TASK-001: Setup Project Structure and Configuration
 
 **Type:** Task
 **Priority:** High
@@ -168,13 +168,13 @@ curl http://localhost:3000/health
 
 ## Subtasks
 
-- [ ] AAI-001-1: Create directory structure and initialize git
-- [ ] AAI-001-2: Configure pnpm workspace
-- [ ] AAI-001-3: Create shared types package
-- [ ] AAI-001-4: Setup orchestrator app with NestJS
-- [ ] AAI-001-5: Setup worker app structure
-- [ ] AAI-001-6: Create configuration files
-- [ ] AAI-001-7: Verify all components start successfully
+- [ ] TASK-001-1: Create directory structure and initialize git
+- [ ] TASK-001-2: Configure pnpm workspace
+- [ ] TASK-001-3: Create shared types package
+- [ ] TASK-001-4: Setup orchestrator app with NestJS
+- [ ] TASK-001-5: Setup worker app structure
+- [ ] TASK-001-6: Create configuration files
+- [ ] TASK-001-7: Verify all components start successfully
 
 ## Definition of Done
 

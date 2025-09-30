@@ -1,10 +1,10 @@
-# AAI-005: Create Web Dashboard
+# TASK-005: Create Web Dashboard
 
 **Type:** Task
 **Priority:** Medium
 **Story Points:** 5
 **Sprint:** UI Development
-**Dependencies:** AAI-004
+**Dependencies:** TASK-004
 
 ## Description
 
@@ -353,14 +353,14 @@ Verify:
 
 ## Subtasks
 
-- [ ] AAI-005-1: Create HTML structure
-- [ ] AAI-005-2: Create CSS styles
-- [ ] AAI-005-3: Implement JavaScript data loading
-- [ ] AAI-005-4: Implement auto-refresh
-- [ ] AAI-005-5: Create task submission form
-- [ ] AAI-005-6: Create simple HTTP server
-- [ ] AAI-005-7: Test on desktop browser
-- [ ] AAI-005-8: Test on mobile browser
+- [ ] TASK-005-1: Create HTML structure
+- [ ] TASK-005-2: Create CSS styles
+- [ ] TASK-005-3: Implement JavaScript data loading
+- [ ] TASK-005-4: Implement auto-refresh
+- [ ] TASK-005-5: Create task submission form
+- [ ] TASK-005-6: Create simple HTTP server
+- [ ] TASK-005-7: Test on desktop browser
+- [ ] TASK-005-8: Test on mobile browser
 
 ## Definition of Done
 

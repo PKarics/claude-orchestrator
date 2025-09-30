@@ -1,10 +1,10 @@
-# AAI-004: Implement Worker Application
+# TASK-004: Implement Worker Application
 
 **Type:** Task
 **Priority:** High
 **Story Points:** 8
 **Sprint:** Core Functionality
-**Dependencies:** AAI-003
+**Dependencies:** TASK-003
 
 ## Description
 
@@ -279,15 +279,15 @@ curl http://localhost:3000/workers
 
 ## Subtasks
 
-- [ ] AAI-004-1: Create ExecutorService for code execution
-- [ ] AAI-004-2: Create HeartbeatService for worker health
-- [ ] AAI-004-3: Create WorkerService for job processing
-- [ ] AAI-004-4: Implement graceful shutdown
-- [ ] AAI-004-5: Add CLI argument parsing
-- [ ] AAI-004-6: Test with single worker
-- [ ] AAI-004-7: Test with multiple workers
-- [ ] AAI-004-8: Test timeout handling
-- [ ] AAI-004-9: Test error handling
+- [ ] TASK-004-1: Create ExecutorService for code execution
+- [ ] TASK-004-2: Create HeartbeatService for worker health
+- [ ] TASK-004-3: Create WorkerService for job processing
+- [ ] TASK-004-4: Implement graceful shutdown
+- [ ] TASK-004-5: Add CLI argument parsing
+- [ ] TASK-004-6: Test with single worker
+- [ ] TASK-004-7: Test with multiple workers
+- [ ] TASK-004-8: Test timeout handling
+- [ ] TASK-004-9: Test error handling
 
 ## Definition of Done
 
