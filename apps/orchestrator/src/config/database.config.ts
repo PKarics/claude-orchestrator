@@ -7,6 +7,6 @@ export const getDatabaseConfig = (
   type: 'sqlite',
   database: configService.get('DB_DATABASE', './data/tasks.db'),
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-  synchronize: configService.get('NODE_ENV') !== 'production',
+  synchronize: configService.get('NODE_ENV') === 'development',
   logging: configService.get('NODE_ENV') === 'development',
 });

@@ -1,7 +1,18 @@
-import { Controller, Post, Get, Body, Param, HttpCode, HttpStatus, ParseUUIDPipe, ValidationPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Body,
+  Param,
+  Query,
+  HttpCode,
+  HttpStatus,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { QueueService } from '../queue/queue.service';
-import { CreateTaskDto } from '@claude-orchestrator/shared';
+import { CreateTaskDto, QueryTaskDto } from '@shared/types';
 
 @Controller('tasks')
 export class TasksController {
@@ -12,7 +23,7 @@ export class TasksController {
 
   @Post()
   @HttpCode(HttpStatus.ACCEPTED)
-  async create(@Body(ValidationPipe) dto: CreateTaskDto) {
+  async create(@Body() dto: CreateTaskDto) {
     const task = await this.tasksService.create(dto);
 
     await this.queueService.addTask(task.id, {
@@ -29,9 +40,9 @@ export class TasksController {
     };
   }
 
-  @Get(':id')
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.tasksService.findOne(id);
+  @Get()
+  findAll(@Query() query: QueryTaskDto) {
+    return this.tasksService.findAll(query);
   }
 
   @Get('stats')
@@ -45,5 +56,16 @@ export class TasksController {
       database: dbStats,
       queue: queueStats,
     };
+  }
+
+  @Get(':id')
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.tasksService.findOne(id);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(@Param('id', ParseUUIDPipe) id: string) {
+    await this.tasksService.remove(id);
   }
 }

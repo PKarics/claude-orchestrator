@@ -10,8 +10,8 @@ import { QueueModule } from '../queue/queue.module';
     TypeOrmModule.forFeature([TaskEntity]),
     forwardRef(() => QueueModule),
   ],
-  providers: [TasksService],
   controllers: [TasksController],
+  providers: [TasksService],
   exports: [TasksService],
 })
 export class TasksModule {}

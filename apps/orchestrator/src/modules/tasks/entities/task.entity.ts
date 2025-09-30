@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm';
-import { TaskStatus } from '@claude-orchestrator/shared';
+import { TaskStatus } from '@shared/types';
 
 @Entity('tasks')
 @Index(['status'])

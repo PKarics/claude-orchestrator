@@ -2,27 +2,27 @@ import { IsEnum, IsString, IsOptional, IsDateString } from 'class-validator';
 import { TaskStatus } from '../index';
 
 export class UpdateTaskDto {
-  @IsEnum(TaskStatus)
   @IsOptional()
+  @IsEnum(TaskStatus)
   status?: TaskStatus;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   workerId?: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   result?: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   errorMessage?: string;
 
-  @IsDateString()
   @IsOptional()
+  @IsDateString()
   startedAt?: Date;
 
-  @IsDateString()
   @IsOptional()
+  @IsDateString()
   completedAt?: Date;
 }

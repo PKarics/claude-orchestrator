@@ -1,12 +1,14 @@
 import { Controller, Get } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { QueueService } from './modules/queue/queue.service';
 
 @Controller()
 export class AppController {
   constructor(
-    private readonly dataSource: DataSource,
-    private readonly queueService: QueueService,
+    @InjectDataSource()
+    private dataSource: DataSource,
+    private queueService: QueueService,
   ) {}
 
   @Get('health')
