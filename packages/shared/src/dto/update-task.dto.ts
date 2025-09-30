@@ -1,5 +1,5 @@
 import { IsEnum, IsString, IsOptional, IsDateString } from 'class-validator';
-import { TaskStatus } from '@claude-orchestrator/shared';
+import { TaskStatus } from '../index';
 
 export class UpdateTaskDto {
   @IsEnum(TaskStatus)

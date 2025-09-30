@@ -1,7 +1,7 @@
 import { Controller, Post, Get, Body, Param, HttpCode, HttpStatus, ParseUUIDPipe, ValidationPipe } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { QueueService } from '../queue/queue.service';
-import { CreateTaskDto } from './dto/create-task.dto';
+import { CreateTaskDto } from '@claude-orchestrator/shared';
 
 @Controller('tasks')
 export class TasksController {

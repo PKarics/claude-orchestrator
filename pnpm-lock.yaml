@@ -92,6 +92,10 @@ importers:
         version: 5.9.2
 
   packages/shared:
+    dependencies:
+      class-validator:
+        specifier: ^0.14.2
+        version: 0.14.2
     devDependencies:
       typescript:
         specifier: ^5.3.0
