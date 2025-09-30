@@ -1,0 +1,7 @@
+{
+  "allowedFileOperations": {
+    "read": true,
+    "write": true,
+    "edit": true
+  }
+}
