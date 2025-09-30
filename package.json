@@ -7,6 +7,9 @@
     "dev": "pnpm -r --parallel dev",
     "start": "./scripts/start.sh",
     "stop": "./scripts/stop.sh",
-    "status": "./scripts/status.sh"
+    "status": "./scripts/status.sh",
+    "start:instance": "./scripts/start-instance.sh",
+    "stop:instance": "./scripts/stop-instance.sh",
+    "list": "./scripts/list-instances.sh"
   }
 }
