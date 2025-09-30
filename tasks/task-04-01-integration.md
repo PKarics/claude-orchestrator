@@ -23,31 +23,40 @@ The worker application has been fully implemented with the following components:
 ### Completed Components
 
 1. **ExecutorService** (`apps/worker/src/services/executor.service.ts`)
-   - Executes JavaScript code in isolated child processes
-   - Handles timeout enforcement
-   - Captures stdout, stderr, and exit codes
-   - Cleans up temporary files
+   - Executes prompts using Claude Agent SDK
+   - Handles timeout enforcement with AbortController
+   - Captures stdout, stderr, and exit codes from SDK messages
+   - Supports configurable tool permissions
+   - Uses shared TaskResult interface from @claude-orchestrator/shared
 
 2. **HeartbeatService** (`apps/worker/src/services/heartbeat.service.ts`)
    - Sends heartbeat to Redis every 10 seconds
    - Sets TTL of 30 seconds on heartbeat keys
    - Provides start/stop lifecycle methods
+   - Error handling for Redis operations
 
 3. **WorkerService** (`apps/worker/src/services/worker.service.ts`)
    - Connects to BullMQ queue
-   - Processes jobs from the task queue
+   - Processes jobs with prompt-based execution
    - Sends results to result queue
    - Handles graceful shutdown (SIGTERM/SIGINT)
    - Integrates executor and heartbeat services
+   - Worker event listeners for failed jobs and errors
+   - Proper error handling and reporting
+   - Input validation for required fields
 
 4. **Redis Utility** (`apps/worker/src/utils/redis.util.ts`)
    - Creates Redis connections with proper configuration
    - Handles connection events and errors
+   - Retry strategy with exponential backoff
+   - Connection timeout and ready check
 
 5. **CLI Interface** (`apps/worker/src/index.ts`)
    - Accepts worker ID and type via command-line arguments
    - Loads environment configuration
    - Initializes and starts worker
+   - Connection timeout handling
+   - Graceful error handling on startup failure
 
 ## Remaining Integration Tasks
 
@@ -74,7 +83,7 @@ cd apps/worker && pnpm dev
 # Submit test task
 curl -X POST http://localhost:3000/tasks \
   -H "Content-Type: application/json" \
-  -d '{"code":"console.log(2+2)","prompt":"math test"}'
+  -d '{"prompt":"Calculate 2+2 and output the result"}'
 
 # Check result
 curl http://localhost:3000/tasks/{task-id}
@@ -98,7 +107,7 @@ pnpm dev -- --id worker-3 &
 for i in {1..10}; do
   curl -X POST http://localhost:3000/tasks \
     -H "Content-Type: application/json" \
-    -d "{\"code\":\"console.log($i)\",\"prompt\":\"task $i\"}"
+    -d "{\"prompt\":\"Output the number $i\"}"
 done
 
 # Check worker stats
@@ -108,33 +117,33 @@ curl http://localhost:3000/workers
 ### 3. Test Timeout Handling
 
 **Test Scenario:**
-- Submit task with infinite loop
+- Submit task that takes longer than timeout
 - Verify timeout is enforced
 - Check error is reported properly
 
 ```bash
 curl -X POST http://localhost:3000/tasks \
   -H "Content-Type: application/json" \
-  -d '{"code":"while(true){}","prompt":"timeout test","timeout":5}'
+  -d '{"prompt":"Sleep for 60 seconds","timeout":5}'
 ```
 
 ### 4. Test Error Handling
 
 **Test Scenario:**
-- Submit task with syntax error
-- Submit task with runtime error
+- Submit task with invalid request
+- Submit task that causes an error
 - Verify errors are captured and reported
 
 ```bash
-# Syntax error
+# Invalid request (missing prompt)
 curl -X POST http://localhost:3000/tasks \
   -H "Content-Type: application/json" \
-  -d '{"code":"console.log(","prompt":"syntax error"}'
+  -d '{"timeout":10}'
 
-# Runtime error
+# Task that causes an error
 curl -X POST http://localhost:3000/tasks \
   -H "Content-Type: application/json" \
-  -d '{"code":"throw new Error(\"test error\")","prompt":"runtime error"}'
+  -d '{"prompt":"Read a file that does not exist at /nonexistent/path.txt"}'
 ```
 
 ### 5. Test Graceful Shutdown

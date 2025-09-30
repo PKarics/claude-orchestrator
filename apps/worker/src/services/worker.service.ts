@@ -31,6 +31,15 @@ export class WorkerService {
       { connection: this.redis, concurrency: 1 },
     );
 
+    // Add worker event listeners for better error handling
+    this.worker.on('failed', (job, error) => {
+      console.error(`Job ${job?.id} failed:`, error);
+    });
+
+    this.worker.on('error', (error) => {
+      console.error('Worker error:', error);
+    });
+
     // Start heartbeat
     this.heartbeat.start();
 
@@ -42,11 +51,17 @@ export class WorkerService {
   }
 
   private async processJob(job: Job) {
-    const { taskId, code, timeout } = job.data;
+    const { taskId, prompt, timeout = 300 } = job.data;
     const startTime = Date.now();
 
+    if (!prompt) {
+      const error = new Error('Missing required field: prompt');
+      await this.reportFailure(taskId, error.message, startTime);
+      throw error;
+    }
+
     try {
-      const result = await this.executor.executeCode(code, timeout);
+      const result = await this.executor.executePrompt(prompt, timeout);
 
       await this.resultQueue.add('process-result', {
         taskId,
@@ -56,14 +71,23 @@ export class WorkerService {
         executionTimeMs: Date.now() - startTime,
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      await this.reportFailure(taskId, errorMessage, startTime);
+      throw error;
+    }
+  }
+
+  private async reportFailure(taskId: string, errorMessage: string, startTime: number) {
+    try {
       await this.resultQueue.add('process-result', {
         taskId,
         workerId: this.workerId,
         status: 'failed',
-        errorMessage: error instanceof Error ? error.message : String(error),
+        errorMessage,
         executionTimeMs: Date.now() - startTime,
       });
-      throw error;
+    } catch (queueError) {
+      console.error('Failed to report failure to queue:', queueError);
     }
   }
 

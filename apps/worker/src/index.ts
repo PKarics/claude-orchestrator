@@ -14,16 +14,28 @@ program
 const options = program.opts();
 
 async function main() {
-  const redis = createRedisConnection();
-  await new Promise((resolve) => redis.once('ready', resolve));
+  try {
+    const redis = createRedisConnection();
 
-  const worker = new WorkerService(
-    options.id,
-    redis,
-    process.env.QUEUE_NAME || 'claude-tasks',
-  );
+    // Wait for Redis connection with timeout
+    await Promise.race([
+      new Promise((resolve) => redis.once('ready', resolve)),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Redis connection timeout')), 15000)
+      ),
+    ]);
 
-  await worker.start();
+    const worker = new WorkerService(
+      options.id,
+      redis,
+      process.env.QUEUE_NAME || 'claude-tasks',
+    );
+
+    await worker.start();
+  } catch (error) {
+    console.error('Failed to start worker:', error);
+    process.exit(1);
+  }
 }
 
-main().catch(console.error);
+main();

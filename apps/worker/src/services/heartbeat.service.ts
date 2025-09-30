@@ -22,7 +22,11 @@ export class HeartbeatService {
   }
 
   private async sendHeartbeat() {
-    const key = `worker:${this.workerId}:heartbeat`;
-    await this.redis.setex(key, 30, new Date().toISOString());
+    try {
+      const key = `worker:${this.workerId}:heartbeat`;
+      await this.redis.setex(key, 30, new Date().toISOString());
+    } catch (error) {
+      console.error('Failed to send heartbeat:', error);
+    }
   }
 }

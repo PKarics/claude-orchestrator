@@ -1,51 +1,71 @@
-import { spawn } from 'child_process';
-import { writeFileSync, unlinkSync } from 'fs';
-import { join } from 'path';
-import { tmpdir } from 'os';
-import { randomUUID } from 'crypto';
-
-export interface TaskResult {
-  stdout: string;
-  stderr: string;
-  exitCode: number;
-}
+import { query, type SDKMessage } from '@anthropic-ai/claude-agent-sdk';
+import { TaskResult } from '@claude-orchestrator/shared';
 
 export class ExecutorService {
-  async executeCode(code: string, timeout: number): Promise<TaskResult> {
-    const tempFile = join(tmpdir(), `task-${randomUUID()}.js`);
+  /**
+   * Execute a prompt using Claude Agent SDK
+   * @param prompt The prompt/task to execute
+   * @param timeout Timeout in seconds
+   * @returns TaskResult with stdout, stderr, and exitCode
+   */
+  async executePrompt(prompt: string, timeout: number): Promise<TaskResult> {
+    const messages: SDKMessage[] = [];
+    const abortController = new AbortController();
+
+    // Set timeout
+    const timeoutHandle = setTimeout(() => {
+      abortController.abort();
+    }, timeout * 1000);
 
     try {
-      writeFileSync(tempFile, code);
-      return await this.runProcess(tempFile, timeout);
-    } finally {
-      try {
-        unlinkSync(tempFile);
-      } catch {
-        // Ignore cleanup errors
+      // Execute prompt using Claude Agent SDK
+      for await (const message of query({
+        prompt,
+        abortController,
+        options: {
+          maxTurns: 10,
+          allowedTools: ['Read', 'Write', 'Edit', 'Bash', 'Glob', 'Grep'],
+        },
+      })) {
+        messages.push(message);
       }
+
+      clearTimeout(timeoutHandle);
+
+      // Extract result from messages
+      const stdout = this.extractOutput(messages);
+      const stderr = this.extractErrors(messages);
+      const exitCode = abortController.signal.aborted ? 124 : 0; // 124 is timeout exit code
+
+      return { stdout, stderr, exitCode };
+    } catch (error) {
+      clearTimeout(timeoutHandle);
+
+      return {
+        stdout: '',
+        stderr: error instanceof Error ? error.message : String(error),
+        exitCode: 1,
+      };
     }
   }
 
-  private runProcess(file: string, timeout: number): Promise<TaskResult> {
-    return new Promise((resolve, reject) => {
-      let stdout = '';
-      let stderr = '';
+  /**
+   * Extract output text from SDK messages
+   */
+  private extractOutput(messages: SDKMessage[]): string {
+    return messages
+      .filter((msg) => msg.type === 'text' || msg.type === 'assistant')
+      .map((msg) => ('content' in msg ? msg.content : ''))
+      .join('\n');
+  }
 
-      const child = spawn('node', [file], { timeout: timeout * 1000 });
-      const timeoutHandle = setTimeout(() => child.kill('SIGKILL'), timeout * 1000);
-
-      child.stdout.on('data', (data) => (stdout += data.toString()));
-      child.stderr.on('data', (data) => (stderr += data.toString()));
-
-      child.on('close', (code) => {
-        clearTimeout(timeoutHandle);
-        resolve({ stdout, stderr, exitCode: code || 0 });
-      });
-
-      child.on('error', (err) => {
-        clearTimeout(timeoutHandle);
-        reject(err);
-      });
-    });
+  /**
+   * Extract error messages from SDK messages
+   */
+  private extractErrors(messages: SDKMessage[]): string {
+    return messages
+      .filter((msg) => msg.type === 'error')
+      .map((msg) => ('content' in msg ? msg.content : ''))
+      .join('\n');
   }
 }
