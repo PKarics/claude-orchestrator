@@ -4,8 +4,8 @@ import { ExecutorService } from './executor.service';
 import { HeartbeatService } from './heartbeat.service';
 
 export class WorkerService {
-  private worker: Worker;
-  private resultQueue: Queue;
+  private worker!: Worker;
+  private resultQueue!: Queue;
   private heartbeat: HeartbeatService;
   private executor: ExecutorService;
 

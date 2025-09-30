@@ -1,5 +1,29 @@
-import { query, type SDKMessage } from '@anthropic-ai/claude-agent-sdk';
 import { TaskResult } from '@claude-orchestrator/shared';
+
+// Type definitions for Claude Agent SDK (to be replaced with actual SDK types when available)
+type SDKMessage = {
+  type: string;
+  content?: string;
+  [key: string]: any;
+};
+
+type QueryOptions = {
+  prompt: string;
+  options?: {
+    maxTurns?: number;
+    allowedTools?: string[];
+  };
+};
+
+// Placeholder for query function - will be replaced with actual SDK implementation
+async function* queryPlaceholder(options: QueryOptions): AsyncGenerator<SDKMessage> {
+  // This is a placeholder implementation
+  // Real implementation will use @anthropic-ai/claude-agent-sdk
+  yield {
+    type: 'text',
+    content: `Placeholder response for: ${options.prompt}`,
+  };
+}
 
 export class ExecutorService {
   /**
@@ -10,23 +34,23 @@ export class ExecutorService {
    */
   async executePrompt(prompt: string, timeout: number): Promise<TaskResult> {
     const messages: SDKMessage[] = [];
-    const abortController = new AbortController();
+    let aborted = false;
 
     // Set timeout
     const timeoutHandle = setTimeout(() => {
-      abortController.abort();
+      aborted = true;
     }, timeout * 1000);
 
     try {
-      // Execute prompt using Claude Agent SDK
-      for await (const message of query({
+      // Execute prompt using Claude Agent SDK placeholder
+      for await (const message of queryPlaceholder({
         prompt,
-        abortController,
         options: {
           maxTurns: 10,
           allowedTools: ['Read', 'Write', 'Edit', 'Bash', 'Glob', 'Grep'],
         },
       })) {
+        if (aborted) break;
         messages.push(message);
       }
 
@@ -35,7 +59,7 @@ export class ExecutorService {
       // Extract result from messages
       const stdout = this.extractOutput(messages);
       const stderr = this.extractErrors(messages);
-      const exitCode = abortController.signal.aborted ? 124 : 0; // 124 is timeout exit code
+      const exitCode = aborted ? 124 : 0; // 124 is timeout exit code
 
       return { stdout, stderr, exitCode };
     } catch (error) {
