@@ -6,10 +6,11 @@
     "build": "pnpm -r build",
     "dev": "pnpm -r --parallel dev",
     "start": "./scripts/start.sh",
-    "stop": "./scripts/stop.sh",
+    "stop": "./scripts/stop-all.sh",
     "status": "./scripts/status.sh",
     "start:instance": "./scripts/start-instance.sh",
     "stop:instance": "./scripts/stop-instance.sh",
+    "stop:all": "./scripts/stop-all.sh",
     "list": "./scripts/list-instances.sh"
   }
 }
