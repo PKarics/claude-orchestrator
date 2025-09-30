@@ -11,16 +11,33 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
+import { QueueService } from '../queue/queue.service';
 import { CreateTaskDto, QueryTaskDto } from '@shared/types';
 
 @Controller('tasks')
 export class TasksController {
-  constructor(private readonly tasksService: TasksService) {}
+  constructor(
+    private readonly tasksService: TasksService,
+    private readonly queueService: QueueService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.ACCEPTED)
-  create(@Body() dto: CreateTaskDto) {
-    return this.tasksService.create(dto);
+  async create(@Body() dto: CreateTaskDto) {
+    const task = await this.tasksService.create(dto);
+
+    await this.queueService.addTask(task.id, {
+      taskId: task.id,
+      code: task.code,
+      prompt: task.prompt,
+      timeout: task.timeout,
+    });
+
+    return {
+      id: task.id,
+      status: task.status,
+      createdAt: task.createdAt,
+    };
   }
 
   @Get()
@@ -29,12 +46,20 @@ export class TasksController {
   }
 
   @Get('stats')
-  getStats() {
-    return this.tasksService.getStatistics();
+  async getStats() {
+    const [dbStats, queueStats] = await Promise.all([
+      this.tasksService.getStatistics(),
+      this.queueService.getQueueStats(),
+    ]);
+
+    return {
+      database: dbStats,
+      queue: queueStats,
+    };
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.tasksService.findOne(id);
   }
 

@@ -8,5 +8,5 @@ export const getDatabaseConfig = (
   database: configService.get('DB_DATABASE', './data/tasks.db'),
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   synchronize: configService.get('NODE_ENV') === 'development',
-  logging: false,
+  logging: configService.get('NODE_ENV') === 'development',
 });

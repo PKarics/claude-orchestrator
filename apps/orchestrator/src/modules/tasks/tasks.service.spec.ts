@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { TaskEntity } from './entities/task.entity';
-import { TaskStatus } from '../../types/task-status.enum';
+import { TaskStatus } from '@shared/types';
 import { CreateTaskDto, QueryTaskDto, UpdateTaskDto } from '@shared/types';
 
 describe('TasksService', () => {

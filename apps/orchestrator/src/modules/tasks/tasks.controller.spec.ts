@@ -1,13 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TasksController } from './tasks.controller';
 import { TasksService } from './tasks.service';
+import { QueueService } from '../queue/queue.service';
 import { TaskEntity } from './entities/task.entity';
-import { TaskStatus } from '../../types/task-status.enum';
+import { TaskStatus } from '@shared/types';
 import { CreateTaskDto, QueryTaskDto } from '@shared/types';
 
 describe('TasksController', () => {
   let controller: TasksController;
   let service: TasksService;
+  let queueService: QueueService;
 
   const mockTasksService = {
     create: jest.fn(),
@@ -15,6 +17,11 @@ describe('TasksController', () => {
     findOne: jest.fn(),
     getStatistics: jest.fn(),
     remove: jest.fn(),
+  };
+
+  const mockQueueService = {
+    addTask: jest.fn(),
+    getQueueStats: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -25,11 +32,16 @@ describe('TasksController', () => {
           provide: TasksService,
           useValue: mockTasksService,
         },
+        {
+          provide: QueueService,
+          useValue: mockQueueService,
+        },
       ],
     }).compile();
 
     controller = module.get<TasksController>(TasksController);
     service = module.get<TasksService>(TasksService);
+    queueService = module.get<QueueService>(QueueService);
   });
 
   afterEach(() => {
@@ -37,7 +49,7 @@ describe('TasksController', () => {
   });
 
   describe('create', () => {
-    it('should create a new task', async () => {
+    it('should create a new task and queue it', async () => {
       const createTaskDto: CreateTaskDto = {
         code: 'console.log("test")',
         prompt: 'test prompt',
@@ -45,17 +57,30 @@ describe('TasksController', () => {
 
       const expectedTask = {
         id: '123',
-        ...createTaskDto,
+        code: createTaskDto.code,
+        prompt: createTaskDto.prompt,
+        timeout: 300,
         status: TaskStatus.QUEUED,
         createdAt: new Date(),
       } as TaskEntity;
 
       mockTasksService.create.mockResolvedValue(expectedTask);
+      mockQueueService.addTask.mockResolvedValue(undefined);
 
       const result = await controller.create(createTaskDto);
 
       expect(service.create).toHaveBeenCalledWith(createTaskDto);
-      expect(result).toEqual(expectedTask);
+      expect(queueService.addTask).toHaveBeenCalledWith('123', {
+        taskId: '123',
+        code: 'console.log("test")',
+        prompt: 'test prompt',
+        timeout: 300,
+      });
+      expect(result).toEqual({
+        id: '123',
+        status: TaskStatus.QUEUED,
+        createdAt: expectedTask.createdAt,
+      });
     });
 
     it('should create a task with custom timeout', async () => {
@@ -67,16 +92,24 @@ describe('TasksController', () => {
 
       const expectedTask = {
         id: '123',
-        ...createTaskDto,
+        code: createTaskDto.code,
+        prompt: createTaskDto.prompt,
+        timeout: 600,
         status: TaskStatus.QUEUED,
         createdAt: new Date(),
       } as TaskEntity;
 
       mockTasksService.create.mockResolvedValue(expectedTask);
+      mockQueueService.addTask.mockResolvedValue(undefined);
 
       const result = await controller.create(createTaskDto);
 
-      expect(result.timeout).toBe(600);
+      expect(queueService.addTask).toHaveBeenCalledWith('123', {
+        taskId: '123',
+        code: 'console.log("test")',
+        prompt: 'test prompt',
+        timeout: 600,
+      });
     });
   });
 
@@ -167,8 +200,8 @@ describe('TasksController', () => {
   });
 
   describe('getStats', () => {
-    it('should return task statistics', async () => {
-      const expectedStats = {
+    it('should return task and queue statistics', async () => {
+      const expectedDbStats = {
         total: 100,
         byStatus: {
           queued: 20,
@@ -178,16 +211,28 @@ describe('TasksController', () => {
         },
       };
 
-      mockTasksService.getStatistics.mockResolvedValue(expectedStats);
+      const expectedQueueStats = {
+        waiting: 15,
+        active: 5,
+        completed: 80,
+        failed: 0,
+      };
+
+      mockTasksService.getStatistics.mockResolvedValue(expectedDbStats);
+      mockQueueService.getQueueStats.mockResolvedValue(expectedQueueStats);
 
       const result = await controller.getStats();
 
       expect(service.getStatistics).toHaveBeenCalled();
-      expect(result).toEqual(expectedStats);
+      expect(queueService.getQueueStats).toHaveBeenCalled();
+      expect(result).toEqual({
+        database: expectedDbStats,
+        queue: expectedQueueStats,
+      });
     });
 
     it('should return empty statistics', async () => {
-      const expectedStats = {
+      const expectedDbStats = {
         total: 0,
         byStatus: {
           queued: 0,
@@ -197,11 +242,22 @@ describe('TasksController', () => {
         },
       };
 
-      mockTasksService.getStatistics.mockResolvedValue(expectedStats);
+      const expectedQueueStats = {
+        waiting: 0,
+        active: 0,
+        completed: 0,
+        failed: 0,
+      };
+
+      mockTasksService.getStatistics.mockResolvedValue(expectedDbStats);
+      mockQueueService.getQueueStats.mockResolvedValue(expectedQueueStats);
 
       const result = await controller.getStats();
 
-      expect(result).toEqual(expectedStats);
+      expect(result).toEqual({
+        database: expectedDbStats,
+        queue: expectedQueueStats,
+      });
     });
   });
 

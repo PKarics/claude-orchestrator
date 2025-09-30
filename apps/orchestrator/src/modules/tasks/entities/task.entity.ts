@@ -1,8 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm';
-import { TaskStatus } from '../../../types/task-status.enum';
+import { TaskStatus } from '@shared/types';
 
 @Entity('tasks')
 @Index(['status'])
+@Index(['createdAt'])
 export class TaskEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;

@@ -2,8 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TaskEntity } from './entities/task.entity';
-import { CreateTaskDto, QueryTaskDto, UpdateTaskDto } from '@shared/types';
-import { TaskStatus } from '../../types/task-status.enum';
+import { CreateTaskDto, QueryTaskDto, UpdateTaskDto, TaskStatus } from '@shared/types';
 
 @Injectable()
 export class TasksService {
