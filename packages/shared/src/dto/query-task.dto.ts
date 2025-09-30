@@ -1,6 +1,6 @@
 import { IsOptional, IsEnum, IsInt, Min } from 'class-validator';
 import { Type } from 'class-transformer';
-import { TaskStatus } from '../../../types/task-status.enum';
+import { TaskStatus } from '../index';
 
 export class QueryTaskDto {
   @IsOptional()

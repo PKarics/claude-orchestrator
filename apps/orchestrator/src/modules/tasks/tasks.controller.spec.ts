@@ -3,8 +3,7 @@ import { TasksController } from './tasks.controller';
 import { TasksService } from './tasks.service';
 import { TaskEntity } from './entities/task.entity';
 import { TaskStatus } from '../../types/task-status.enum';
-import { CreateTaskDto } from './dto/create-task.dto';
-import { QueryTaskDto } from './dto/query-task.dto';
+import { CreateTaskDto, QueryTaskDto } from '@shared/types';
 
 describe('TasksController', () => {
   let controller: TasksController;

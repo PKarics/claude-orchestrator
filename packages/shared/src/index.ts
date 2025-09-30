@@ -21,3 +21,8 @@ export interface TaskResult {
   stderr: string;
   exitCode: number;
 }
+
+// Export DTOs
+export { CreateTaskDto } from './dto/create-task.dto';
+export { QueryTaskDto } from './dto/query-task.dto';
+export { UpdateTaskDto } from './dto/update-task.dto';

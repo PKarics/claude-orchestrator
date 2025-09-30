@@ -5,9 +5,7 @@ import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { TaskEntity } from './entities/task.entity';
 import { TaskStatus } from '../../types/task-status.enum';
-import { CreateTaskDto } from './dto/create-task.dto';
-import { QueryTaskDto } from './dto/query-task.dto';
-import { UpdateTaskDto } from './dto/update-task.dto';
+import { CreateTaskDto, QueryTaskDto, UpdateTaskDto } from '@shared/types';
 
 describe('TasksService', () => {
   let service: TasksService;

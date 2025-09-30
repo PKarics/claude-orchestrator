@@ -11,8 +11,7 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
-import { CreateTaskDto } from './dto/create-task.dto';
-import { QueryTaskDto } from './dto/query-task.dto';
+import { CreateTaskDto, QueryTaskDto } from '@shared/types';
 
 @Controller('tasks')
 export class TasksController {

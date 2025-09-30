@@ -22,5 +22,6 @@ module.exports = {
   },
   moduleNameMapper: {
     '^src/(.*)$': '<rootDir>/src/$1',
+    '^@shared/types$': '<rootDir>/../../packages/shared/src/index.ts',
   },
 };
