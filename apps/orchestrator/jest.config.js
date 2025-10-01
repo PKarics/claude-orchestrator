@@ -2,10 +2,12 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   rootDir: '.',
-  testRegex: '.*\\.spec\\.ts$',
+  testRegex: '.*\\.(spec|e2e-spec)\\.ts$',
+  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.spec.ts',
+    '!src/**/*.e2e-spec.ts',
     '!src/**/*.d.ts',
     '!src/main.ts',
     '!src/**/*.module.ts',
@@ -24,4 +26,8 @@ module.exports = {
     '^src/(.*)$': '<rootDir>/src/$1',
     '^@shared/types$': '<rootDir>/../../packages/shared/src/index.ts',
   },
+  globals: {
+    crypto: require('crypto'),
+  },
+  testTimeout: 30000,
 };
