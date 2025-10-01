@@ -1,29 +1,20 @@
-import { Worker, Queue, Job } from 'bullmq';
+import { Worker, Job } from 'bullmq';
 import Redis from 'ioredis';
-import { ExecutorService } from './executor.service';
 import { HeartbeatService } from './heartbeat.service';
 
 export class WorkerService {
   private worker!: Worker;
-  private resultQueue!: Queue;
   private heartbeat: HeartbeatService;
-  private executor: ExecutorService;
 
   constructor(
     private workerId: string,
     private redis: Redis,
     private queueName: string,
   ) {
-    this.executor = new ExecutorService();
     this.heartbeat = new HeartbeatService(redis, workerId);
   }
 
   async start() {
-    // Initialize result queue
-    this.resultQueue = new Queue(`${this.queueName}-results`, {
-      connection: this.redis,
-    });
-
     // Initialize worker
     this.worker = new Worker(
       this.queueName,
@@ -51,44 +42,19 @@ export class WorkerService {
   }
 
   private async processJob(job: Job) {
-    const { taskId, prompt, timeout = 300 } = job.data;
-    const startTime = Date.now();
+    const { taskId, prompt } = job.data;
 
     if (!prompt) {
-      const error = new Error('Missing required field: prompt');
-      await this.reportFailure(taskId, error.message, startTime);
-      throw error;
+      throw new Error('Missing required field: prompt');
     }
 
-    try {
-      const result = await this.executor.executePrompt(prompt, timeout);
+    // Submit prompt to Claude Code and return immediately
+    // The worker will handle the prompt asynchronously
+    console.log(`Worker ${this.workerId} received task ${taskId} with prompt: ${prompt.substring(0, 100)}...`);
 
-      await this.resultQueue.add('process-result', {
-        taskId,
-        workerId: this.workerId,
-        status: 'completed',
-        result,
-        executionTimeMs: Date.now() - startTime,
-      });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      await this.reportFailure(taskId, errorMessage, startTime);
-      throw error;
-    }
-  }
-
-  private async reportFailure(taskId: string, errorMessage: string, startTime: number) {
-    try {
-      await this.resultQueue.add('process-result', {
-        taskId,
-        workerId: this.workerId,
-        status: 'failed',
-        errorMessage,
-        executionTimeMs: Date.now() - startTime,
-      });
-    } catch (queueError) {
-      console.error('Failed to report failure to queue:', queueError);
-    }
+    // TODO: Submit to Claude Code API
+    // For now, just acknowledge receipt
+    return { taskId, status: 'submitted' };
   }
 
   private async shutdown() {

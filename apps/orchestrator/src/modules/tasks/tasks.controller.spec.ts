@@ -51,15 +51,12 @@ describe('TasksController', () => {
   describe('create', () => {
     it('should create a new task and queue it', async () => {
       const createTaskDto: CreateTaskDto = {
-        code: 'console.log("test")',
         prompt: 'test prompt',
       };
 
       const expectedTask = {
         id: '123',
-        code: createTaskDto.code,
         prompt: createTaskDto.prompt,
-        timeout: 300,
         status: TaskStatus.QUEUED,
         createdAt: new Date(),
       } as TaskEntity;
@@ -72,43 +69,12 @@ describe('TasksController', () => {
       expect(service.create).toHaveBeenCalledWith(createTaskDto);
       expect(queueService.addTask).toHaveBeenCalledWith('123', {
         taskId: '123',
-        code: 'console.log("test")',
         prompt: 'test prompt',
-        timeout: 300,
       });
       expect(result).toEqual({
         id: '123',
         status: TaskStatus.QUEUED,
         createdAt: expectedTask.createdAt,
-      });
-    });
-
-    it('should create a task with custom timeout', async () => {
-      const createTaskDto: CreateTaskDto = {
-        code: 'console.log("test")',
-        prompt: 'test prompt',
-        timeout: 600,
-      };
-
-      const expectedTask = {
-        id: '123',
-        code: createTaskDto.code,
-        prompt: createTaskDto.prompt,
-        timeout: 600,
-        status: TaskStatus.QUEUED,
-        createdAt: new Date(),
-      } as TaskEntity;
-
-      mockTasksService.create.mockResolvedValue(expectedTask);
-      mockQueueService.addTask.mockResolvedValue(undefined);
-
-      const result = await controller.create(createTaskDto);
-
-      expect(queueService.addTask).toHaveBeenCalledWith('123', {
-        taskId: '123',
-        code: 'console.log("test")',
-        prompt: 'test prompt',
-        timeout: 600,
       });
     });
   });
@@ -186,7 +152,6 @@ describe('TasksController', () => {
       const task = {
         id: '123',
         status: TaskStatus.QUEUED,
-        code: 'test code',
         prompt: 'test prompt',
       } as TaskEntity;
 

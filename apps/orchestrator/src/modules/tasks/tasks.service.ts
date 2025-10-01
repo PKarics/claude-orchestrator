@@ -60,11 +60,6 @@ export class TasksService {
     if (dto.status) {
       if (dto.status === TaskStatus.RUNNING && !task.startedAt) {
         task.startedAt = new Date();
-      } else if (
-        (dto.status === TaskStatus.COMPLETED || dto.status === TaskStatus.FAILED) &&
-        !task.completedAt
-      ) {
-        task.completedAt = new Date();
       }
     }
 

@@ -42,7 +42,6 @@ describe('TasksService', () => {
   describe('create', () => {
     it('should create a new task', async () => {
       const createTaskDto: CreateTaskDto = {
-        code: 'console.log("test")',
         prompt: 'test prompt',
       };
 
@@ -64,28 +63,6 @@ describe('TasksService', () => {
       });
       expect(mockRepository.save).toHaveBeenCalledWith(expectedTask);
       expect(result).toEqual(expectedTask);
-    });
-
-    it('should create a task with custom timeout', async () => {
-      const createTaskDto: CreateTaskDto = {
-        code: 'console.log("test")',
-        prompt: 'test prompt',
-        timeout: 600,
-      };
-
-      const expectedTask = {
-        id: '123',
-        ...createTaskDto,
-        status: TaskStatus.QUEUED,
-        createdAt: new Date(),
-      } as TaskEntity;
-
-      mockRepository.create.mockReturnValue(expectedTask);
-      mockRepository.save.mockResolvedValue(expectedTask);
-
-      const result = await service.create(createTaskDto);
-
-      expect(result.timeout).toBe(600);
     });
   });
 
@@ -200,13 +177,13 @@ describe('TasksService', () => {
       const task = {
         id: '123',
         status: TaskStatus.QUEUED,
+        prompt: 'test',
+        createdAt: new Date(),
         startedAt: null,
-        completedAt: null,
       } as TaskEntity;
 
       const updateDto: UpdateTaskDto = {
         status: TaskStatus.RUNNING,
-        workerId: 'worker-1',
       };
 
       mockRepository.findOne.mockResolvedValue(task);
@@ -215,7 +192,6 @@ describe('TasksService', () => {
       const result = await service.update('123', updateDto);
 
       expect(result.status).toBe(TaskStatus.RUNNING);
-      expect(result.workerId).toBe('worker-1');
       expect(result.startedAt).toBeInstanceOf(Date);
     });
 
@@ -223,6 +199,8 @@ describe('TasksService', () => {
       const task = {
         id: '123',
         status: TaskStatus.QUEUED,
+        prompt: 'test',
+        createdAt: new Date(),
         startedAt: null,
       } as TaskEntity;
 
@@ -240,53 +218,13 @@ describe('TasksService', () => {
       expect(savedTask.startedAt).toBeInstanceOf(Date);
     });
 
-    it('should set completedAt when status changes to COMPLETED', async () => {
-      const task = {
-        id: '123',
-        status: TaskStatus.RUNNING,
-        completedAt: null,
-      } as TaskEntity;
-
-      const updateDto: UpdateTaskDto = {
-        status: TaskStatus.COMPLETED,
-        result: 'success',
-      };
-
-      mockRepository.findOne.mockResolvedValue(task);
-      mockRepository.save.mockImplementation((t) => Promise.resolve(t));
-
-      await service.update('123', updateDto);
-
-      const savedTask = mockRepository.save.mock.calls[0][0];
-      expect(savedTask.completedAt).toBeInstanceOf(Date);
-    });
-
-    it('should set completedAt when status changes to FAILED', async () => {
-      const task = {
-        id: '123',
-        status: TaskStatus.RUNNING,
-        completedAt: null,
-      } as TaskEntity;
-
-      const updateDto: UpdateTaskDto = {
-        status: TaskStatus.FAILED,
-        errorMessage: 'Error occurred',
-      };
-
-      mockRepository.findOne.mockResolvedValue(task);
-      mockRepository.save.mockImplementation((t) => Promise.resolve(t));
-
-      await service.update('123', updateDto);
-
-      const savedTask = mockRepository.save.mock.calls[0][0];
-      expect(savedTask.completedAt).toBeInstanceOf(Date);
-    });
-
     it('should not update timestamps if already set', async () => {
       const startedAt = new Date('2023-01-01');
       const task = {
         id: '123',
         status: TaskStatus.RUNNING,
+        prompt: 'test',
+        createdAt: new Date(),
         startedAt,
       } as TaskEntity;
 
