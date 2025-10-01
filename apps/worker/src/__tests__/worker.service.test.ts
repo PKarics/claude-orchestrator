@@ -1,21 +1,17 @@
 import { WorkerService } from '../services/worker.service';
-import { ExecutorService } from '../services/executor.service';
 import { HeartbeatService } from '../services/heartbeat.service';
-import { Worker, Queue, Job } from 'bullmq';
+import { Worker, Job } from 'bullmq';
 import Redis from 'ioredis';
 
 // Mock dependencies
 jest.mock('bullmq');
 jest.mock('ioredis');
-jest.mock('../services/executor.service');
 jest.mock('../services/heartbeat.service');
 
 describe('WorkerService', () => {
   let workerService: WorkerService;
   let mockRedis: jest.Mocked<Redis>;
   let mockWorker: jest.Mocked<Worker>;
-  let mockQueue: jest.Mocked<Queue>;
-  let mockExecutor: jest.Mocked<ExecutorService>;
   let mockHeartbeat: jest.Mocked<HeartbeatService>;
 
   beforeEach(() => {
@@ -23,10 +19,6 @@ describe('WorkerService', () => {
 
     mockRedis = {
       quit: jest.fn().mockResolvedValue('OK'),
-    } as any;
-
-    mockExecutor = {
-      executePrompt: jest.fn(),
     } as any;
 
     mockHeartbeat = {
@@ -39,13 +31,7 @@ describe('WorkerService', () => {
       close: jest.fn().mockResolvedValue(undefined),
     } as any;
 
-    mockQueue = {
-      add: jest.fn().mockResolvedValue({ id: 'job-123' }),
-    } as any;
-
     (Worker as jest.MockedClass<typeof Worker>).mockImplementation(() => mockWorker);
-    (Queue as jest.MockedClass<typeof Queue>).mockImplementation(() => mockQueue);
-    (ExecutorService as jest.MockedClass<typeof ExecutorService>).mockImplementation(() => mockExecutor);
     (HeartbeatService as jest.MockedClass<typeof HeartbeatService>).mockImplementation(() => mockHeartbeat);
 
     workerService = new WorkerService('test-worker-1', mockRedis, 'test-queue');
@@ -56,14 +42,6 @@ describe('WorkerService', () => {
   });
 
   describe('start', () => {
-    it('should initialize result queue with correct configuration', async () => {
-      await workerService.start();
-
-      expect(Queue).toHaveBeenCalledWith('test-queue-results', {
-        connection: mockRedis,
-      });
-    });
-
     it('should initialize worker with correct configuration', async () => {
       await workerService.start();
 
@@ -120,177 +98,67 @@ describe('WorkerService', () => {
   });
 
   describe('processJob', () => {
-    let jobProcessor: (job: Job) => Promise<void>;
+    let jobProcessor: (job: Job) => Promise<any>;
 
     beforeEach(async () => {
       await workerService.start();
 
       // Extract the job processor function from Worker constructor
       const workerConstructorCalls = (Worker as jest.MockedClass<typeof Worker>).mock.calls;
-      jobProcessor = workerConstructorCalls[0][1] as (job: Job) => Promise<void>;
+      jobProcessor = workerConstructorCalls[0][1] as (job: Job) => Promise<any>;
     });
 
-    it('should execute prompt successfully', async () => {
+    it('should acknowledge task receipt and return immediately', async () => {
+      const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
+
       const mockJob: Job = {
         data: {
           taskId: 'task-123',
-          prompt: 'Test prompt',
-          timeout: 60,
+          prompt: 'Test prompt for Claude Code',
         },
       } as any;
 
-      const mockResult = {
-        stdout: 'Success',
-        stderr: '',
-        exitCode: 0,
-      };
+      const result = await jobProcessor(mockJob);
 
-      mockExecutor.executePrompt.mockResolvedValue(mockResult);
-
-      await jobProcessor(mockJob);
-
-      expect(mockExecutor.executePrompt).toHaveBeenCalledWith('Test prompt', 60);
-      expect(mockQueue.add).toHaveBeenCalledWith('process-result', {
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Worker test-worker-1 received task task-123')
+      );
+      expect(result).toEqual({
         taskId: 'task-123',
-        workerId: 'test-worker-1',
-        status: 'completed',
-        result: mockResult,
-        executionTimeMs: expect.any(Number),
-      });
-    });
-
-    it('should use default timeout when not provided', async () => {
-      const mockJob: Job = {
-        data: {
-          taskId: 'task-123',
-          prompt: 'Test prompt',
-        },
-      } as any;
-
-      mockExecutor.executePrompt.mockResolvedValue({
-        stdout: '',
-        stderr: '',
-        exitCode: 0,
+        status: 'submitted',
       });
 
-      await jobProcessor(mockJob);
-
-      expect(mockExecutor.executePrompt).toHaveBeenCalledWith('Test prompt', 300);
+      consoleLogSpy.mockRestore();
     });
 
     it('should reject job with missing prompt', async () => {
       const mockJob: Job = {
         data: {
           taskId: 'task-123',
-          timeout: 60,
         },
       } as any;
 
       await expect(jobProcessor(mockJob)).rejects.toThrow('Missing required field: prompt');
-
-      expect(mockQueue.add).toHaveBeenCalledWith('process-result', {
-        taskId: 'task-123',
-        workerId: 'test-worker-1',
-        status: 'failed',
-        errorMessage: 'Missing required field: prompt',
-        executionTimeMs: expect.any(Number),
-      });
     });
 
-    it('should handle execution errors', async () => {
-      const mockJob: Job = {
-        data: {
-          taskId: 'task-123',
-          prompt: 'Test prompt',
-          timeout: 60,
-        },
-      } as any;
-
-      const testError = new Error('Execution failed');
-      mockExecutor.executePrompt.mockRejectedValue(testError);
-
-      await expect(jobProcessor(mockJob)).rejects.toThrow('Execution failed');
-
-      expect(mockQueue.add).toHaveBeenCalledWith('process-result', {
-        taskId: 'task-123',
-        workerId: 'test-worker-1',
-        status: 'failed',
-        errorMessage: 'Execution failed',
-        executionTimeMs: expect.any(Number),
-      });
-    });
-
-    it('should handle non-Error exceptions', async () => {
-      const mockJob: Job = {
-        data: {
-          taskId: 'task-123',
-          prompt: 'Test prompt',
-          timeout: 60,
-        },
-      } as any;
-
-      mockExecutor.executePrompt.mockRejectedValue('String error');
-
-      await expect(jobProcessor(mockJob)).rejects.toBe('String error');
-
-      expect(mockQueue.add).toHaveBeenCalledWith('process-result', {
-        taskId: 'task-123',
-        workerId: 'test-worker-1',
-        status: 'failed',
-        errorMessage: 'String error',
-        executionTimeMs: expect.any(Number),
-      });
-    });
-
-    it('should track execution time accurately', async () => {
-      jest.useFakeTimers();
-      const startTime = Date.now();
-      jest.setSystemTime(startTime);
+    it('should log truncated prompt if too long', async () => {
+      const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
+      const longPrompt = 'a'.repeat(200);
 
       const mockJob: Job = {
         data: {
           taskId: 'task-123',
-          prompt: 'Test prompt',
-          timeout: 60,
+          prompt: longPrompt,
         },
       } as any;
-
-      mockExecutor.executePrompt.mockImplementation(async () => {
-        jest.advanceTimersByTime(5000); // Simulate 5 second execution
-        return { stdout: 'Done', stderr: '', exitCode: 0 };
-      });
 
       await jobProcessor(mockJob);
 
-      expect(mockQueue.add).toHaveBeenCalledWith('process-result', expect.objectContaining({
-        executionTimeMs: 5000,
-      }));
-
-      jest.useRealTimers();
-    });
-
-    it('should log error when reporting failure fails', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
-      const mockJob: Job = {
-        data: {
-          taskId: 'task-123',
-          prompt: 'Test prompt',
-          timeout: 60,
-        },
-      } as any;
-
-      mockExecutor.executePrompt.mockRejectedValue(new Error('Execution error'));
-      mockQueue.add.mockRejectedValue(new Error('Queue error'));
-
-      await expect(jobProcessor(mockJob)).rejects.toThrow('Execution error');
-
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to report failure to queue:',
-        expect.any(Error)
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining('a'.repeat(100))
       );
 
-      consoleErrorSpy.mockRestore();
+      consoleLogSpy.mockRestore();
     });
   });
 

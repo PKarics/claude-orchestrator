@@ -50,69 +50,27 @@ describe('TasksController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/tasks')
         .send({
-          code: 'console.log("test")',
           prompt: 'test prompt',
         })
         .expect(202)
         .expect((res) => {
           expect(res.body).toHaveProperty('id');
           expect(res.body.status).toBe(TaskStatus.QUEUED);
-          expect(res.body.code).toBe('console.log("test")');
-          expect(res.body.prompt).toBe('test prompt');
-          expect(res.body.timeout).toBe(300);
         });
-    });
-
-    it('should create a task with custom timeout', () => {
-      return request(app.getHttpServer())
-        .post('/tasks')
-        .send({
-          code: 'console.log("test")',
-          prompt: 'test prompt',
-          timeout: 600,
-        })
-        .expect(202)
-        .expect((res) => {
-          expect(res.body.timeout).toBe(600);
-        });
-    });
-
-    it('should reject invalid task data - missing code', () => {
-      return request(app.getHttpServer())
-        .post('/tasks')
-        .send({
-          prompt: 'test prompt',
-        })
-        .expect(400);
     });
 
     it('should reject invalid task data - missing prompt', () => {
       return request(app.getHttpServer())
         .post('/tasks')
-        .send({
-          code: 'console.log("test")',
-        })
+        .send({})
         .expect(400);
     });
 
-    it('should reject invalid timeout - too small', () => {
+    it('should reject empty prompt', () => {
       return request(app.getHttpServer())
         .post('/tasks')
         .send({
-          code: 'console.log("test")',
-          prompt: 'test prompt',
-          timeout: 0,
-        })
-        .expect(400);
-    });
-
-    it('should reject invalid timeout - too large', () => {
-      return request(app.getHttpServer())
-        .post('/tasks')
-        .send({
-          code: 'console.log("test")',
-          prompt: 'test prompt',
-          timeout: 5000,
+          prompt: '',
         })
         .expect(400);
     });
@@ -121,7 +79,6 @@ describe('TasksController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/tasks')
         .send({
-          code: 'console.log("test")',
           prompt: 'test prompt',
           extraField: 'should be rejected',
         })
@@ -134,7 +91,6 @@ describe('TasksController (e2e)', () => {
       // Create test tasks
       for (let i = 0; i < 15; i++) {
         await taskRepository.save({
-          code: `console.log("test ${i}")`,
           prompt: `test prompt ${i}`,
           status: i < 5 ? TaskStatus.QUEUED : i < 10 ? TaskStatus.RUNNING : TaskStatus.COMPLETED,
         });
@@ -203,11 +159,11 @@ describe('TasksController (e2e)', () => {
   describe('/tasks/stats (GET)', () => {
     beforeEach(async () => {
       // Create tasks with different statuses
-      await taskRepository.save({ code: 'test1', prompt: 'test', status: TaskStatus.QUEUED });
-      await taskRepository.save({ code: 'test2', prompt: 'test', status: TaskStatus.QUEUED });
-      await taskRepository.save({ code: 'test3', prompt: 'test', status: TaskStatus.RUNNING });
-      await taskRepository.save({ code: 'test4', prompt: 'test', status: TaskStatus.COMPLETED });
-      await taskRepository.save({ code: 'test5', prompt: 'test', status: TaskStatus.FAILED });
+      await taskRepository.save({ prompt: 'test 1', status: TaskStatus.QUEUED });
+      await taskRepository.save({ prompt: 'test 2', status: TaskStatus.QUEUED });
+      await taskRepository.save({ prompt: 'test 3', status: TaskStatus.RUNNING });
+      await taskRepository.save({ prompt: 'test 4', status: TaskStatus.COMPLETED });
+      await taskRepository.save({ prompt: 'test 5', status: TaskStatus.FAILED });
     });
 
     it('should return task statistics', () => {
@@ -250,7 +206,6 @@ describe('TasksController (e2e)', () => {
   describe('/tasks/:id (GET)', () => {
     it('should return a task by id', async () => {
       const task = await taskRepository.save({
-        code: 'console.log("test")',
         prompt: 'test prompt',
         status: TaskStatus.QUEUED,
       });
@@ -260,7 +215,7 @@ describe('TasksController (e2e)', () => {
         .expect(200)
         .expect((res) => {
           expect(res.body.id).toBe(task.id);
-          expect(res.body.code).toBe('console.log("test")');
+          expect(res.body.prompt).toBe('test prompt');
         });
     });
 
@@ -280,7 +235,6 @@ describe('TasksController (e2e)', () => {
   describe('/tasks/:id (DELETE)', () => {
     it('should delete a completed task', async () => {
       const task = await taskRepository.save({
-        code: 'console.log("test")',
         prompt: 'test prompt',
         status: TaskStatus.COMPLETED,
       });
@@ -295,7 +249,6 @@ describe('TasksController (e2e)', () => {
 
     it('should delete a failed task', async () => {
       const task = await taskRepository.save({
-        code: 'console.log("test")',
         prompt: 'test prompt',
         status: TaskStatus.FAILED,
       });
@@ -310,7 +263,6 @@ describe('TasksController (e2e)', () => {
 
     it('should not delete a queued task', async () => {
       const task = await taskRepository.save({
-        code: 'console.log("test")',
         prompt: 'test prompt',
         status: TaskStatus.QUEUED,
       });
@@ -325,7 +277,6 @@ describe('TasksController (e2e)', () => {
 
     it('should not delete a running task', async () => {
       const task = await taskRepository.save({
-        code: 'console.log("test")',
         prompt: 'test prompt',
         status: TaskStatus.RUNNING,
       });

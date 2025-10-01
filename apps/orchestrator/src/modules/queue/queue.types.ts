@@ -2,9 +2,7 @@ import { TaskStatus } from '@claude-orchestrator/shared';
 
 export interface QueueJobData {
   taskId: string;
-  code: string;
   prompt: string;
-  timeout: number;
 }
 
 export interface QueueJobResult {

@@ -28,9 +28,7 @@ export class TasksController {
 
     await this.queueService.addTask(task.id, {
       taskId: task.id,
-      code: task.code,
       prompt: task.prompt,
-      timeout: task.timeout,
     });
 
     return {

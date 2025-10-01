@@ -55,7 +55,6 @@ describe('Orchestrator API E2E', () => {
       return request(app.getHttpServer())
         .post('/tasks')
         .send({
-          code: 'console.log("test")',
           prompt: 'Test prompt',
         })
         .expect(202)
@@ -66,57 +65,18 @@ describe('Orchestrator API E2E', () => {
         });
     });
 
-    it('should create a task with custom timeout', () => {
-      return request(app.getHttpServer())
-        .post('/tasks')
-        .send({
-          code: 'console.log("test")',
-          prompt: 'Test prompt',
-          timeout: 600,
-        })
-        .expect(202)
-        .expect((res) => {
-          expect(res.body).toHaveProperty('id');
-          expect(res.body.status).toBe(TaskStatus.QUEUED);
-        });
-    });
-
-    it('should reject task without code', () => {
-      return request(app.getHttpServer())
-        .post('/tasks')
-        .send({
-          prompt: 'Test prompt',
-        })
-        .expect(400);
-    });
-
     it('should reject task without prompt', () => {
       return request(app.getHttpServer())
         .post('/tasks')
-        .send({
-          code: 'console.log("test")',
-        })
+        .send({})
         .expect(400);
     });
 
-    it('should reject task with invalid timeout', () => {
+    it('should reject task with empty prompt', () => {
       return request(app.getHttpServer())
         .post('/tasks')
         .send({
-          code: 'console.log("test")',
-          prompt: 'Test prompt',
-          timeout: 'invalid',
-        })
-        .expect(400);
-    });
-
-    it('should reject task with timeout too high', () => {
-      return request(app.getHttpServer())
-        .post('/tasks')
-        .send({
-          code: 'console.log("test")',
-          prompt: 'Test prompt',
-          timeout: 5000,
+          prompt: '',
         })
         .expect(400);
     });
@@ -130,7 +90,6 @@ describe('Orchestrator API E2E', () => {
       const response = await request(app.getHttpServer())
         .post('/tasks')
         .send({
-          code: 'console.log("list test")',
           prompt: 'List test prompt',
         });
       createdTaskId = response.body.id;
@@ -177,7 +136,6 @@ describe('Orchestrator API E2E', () => {
       const response = await request(app.getHttpServer())
         .post('/tasks')
         .send({
-          code: 'console.log("get test")',
           prompt: 'Get test prompt',
         });
       testTaskId = response.body.id;
@@ -189,7 +147,6 @@ describe('Orchestrator API E2E', () => {
         .expect(200)
         .expect((res) => {
           expect(res.body.id).toBe(testTaskId);
-          expect(res.body).toHaveProperty('code');
           expect(res.body).toHaveProperty('prompt');
           expect(res.body).toHaveProperty('status');
           expect(res.body).toHaveProperty('createdAt');
@@ -231,7 +188,6 @@ describe('Orchestrator API E2E', () => {
       const response = await request(app.getHttpServer())
         .post('/tasks')
         .send({
-          code: 'console.log("delete test")',
           prompt: 'Delete test prompt',
         });
 
@@ -266,7 +222,6 @@ describe('Orchestrator API E2E', () => {
       return request(app.getHttpServer())
         .post('/tasks')
         .send({
-          code: 'console.log("test")',
           prompt: 'Test prompt',
           unknownField: 'should be rejected',
         })

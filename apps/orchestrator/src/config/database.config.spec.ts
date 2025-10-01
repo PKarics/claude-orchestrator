@@ -16,7 +16,7 @@ describe('getDatabaseConfig', () => {
     const config = getDatabaseConfig(configService);
 
     expect(config).toMatchObject({
-      type: 'sqlite',
+      type: 'better-sqlite3',
       database: './data/tasks.db',
       synchronize: false,
       logging: false,
