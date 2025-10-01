@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { QueueService } from '../queue/queue.service';
-import { CreateTaskDto, QueryTaskDto } from '@shared/types';
+import { CreateTaskDto, QueryTaskDto } from '@claude-orchestrator/shared';
 
 @Controller('tasks')
 export class TasksController {

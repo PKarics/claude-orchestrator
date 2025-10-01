@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../../src/app.module';
-import { TaskStatus } from '@shared/types';
+import { TaskStatus } from '@claude-orchestrator/shared';
 
 /**
  * End-to-End Tests for Orchestrator API

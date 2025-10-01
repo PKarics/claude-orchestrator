@@ -3,8 +3,8 @@ import { TasksController } from './tasks.controller';
 import { TasksService } from './tasks.service';
 import { QueueService } from '../queue/queue.service';
 import { TaskEntity } from './entities/task.entity';
-import { TaskStatus } from '@shared/types';
-import { CreateTaskDto, QueryTaskDto } from '@shared/types';
+import { TaskStatus } from '@claude-orchestrator/shared';
+import { CreateTaskDto, QueryTaskDto } from '@claude-orchestrator/shared';
 
 describe('TasksController', () => {
   let controller: TasksController;

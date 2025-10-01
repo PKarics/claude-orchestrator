@@ -13,6 +13,12 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
 
+  // Enable CORS for dashboard (allow any localhost port)
+  app.enableCors({
+    origin: /^http:\/\/localhost:\d+$/,
+    credentials: true,
+  });
+
   // Enable validation globally
   app.useGlobalPipes(
     new ValidationPipe({
