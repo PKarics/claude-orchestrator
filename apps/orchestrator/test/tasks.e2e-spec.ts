@@ -171,14 +171,14 @@ describe('TasksController (e2e)', () => {
         .get('/tasks/stats')
         .expect(200)
         .expect((res) => {
+          expect(res.body).toHaveProperty('database');
+          expect(res.body).toHaveProperty('queue');
           expect(res.body.database).toEqual({
             total: 5,
-            byStatus: {
-              queued: 2,
-              running: 1,
-              completed: 1,
-              failed: 1,
-            },
+            queued: 2,
+            running: 1,
+            completed: 1,
+            failed: 1,
           });
         });
     });
@@ -190,14 +190,14 @@ describe('TasksController (e2e)', () => {
         .get('/tasks/stats')
         .expect(200)
         .expect((res) => {
+          expect(res.body).toHaveProperty('database');
+          expect(res.body).toHaveProperty('queue');
           expect(res.body.database).toEqual({
             total: 0,
-            byStatus: {
-              queued: 0,
-              running: 0,
-              completed: 0,
-              failed: 0,
-            },
+            queued: 0,
+            running: 0,
+            completed: 0,
+            failed: 0,
           });
         });
     });
