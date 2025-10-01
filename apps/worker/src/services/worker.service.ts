@@ -55,11 +55,23 @@ export class WorkerService {
     const { taskId, prompt, timeout = 300 } = job.data;
     const startTime = Date.now();
 
+    // Validate required fields
+    if (!taskId) {
+      throw new Error('Missing required field: taskId');
+    }
+
     if (!prompt) {
       throw new Error('Missing required field: prompt');
     }
 
-    console.log(`Worker ${this.workerId} processing task ${taskId} with prompt: ${prompt.substring(0, 100)}...`);
+    // Validate prompt is a non-empty string
+    if (typeof prompt !== 'string' || prompt.trim().length === 0) {
+      throw new Error('Invalid prompt: must be a non-empty string');
+    }
+
+    // Log job receipt
+    const truncatedPrompt = prompt.length > 100 ? prompt.substring(0, 100) + '...' : prompt;
+    console.log(`Worker ${this.workerId} processing task ${taskId} with prompt: ${truncatedPrompt}`);
 
     try {
       // Execute the prompt using Claude Agent SDK

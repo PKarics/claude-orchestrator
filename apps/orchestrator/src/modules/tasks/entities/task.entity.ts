@@ -14,9 +14,27 @@ export class TaskEntity {
   @Column('text')
   prompt: string;
 
+  @Column('text', { nullable: true })
+  code?: string;
+
+  @Column({ type: 'int', default: 300 })
+  timeout: number;
+
+  @Column({ nullable: true })
+  workerId?: string;
+
+  @Column('text', { nullable: true })
+  result?: string;
+
+  @Column('text', { nullable: true })
+  errorMessage?: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
   @Column({ type: 'datetime', nullable: true })
   startedAt?: Date;
+
+  @Column({ type: 'datetime', nullable: true })
+  completedAt?: Date;
 }

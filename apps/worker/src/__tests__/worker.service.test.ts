@@ -1,18 +1,25 @@
 import { WorkerService } from '../services/worker.service';
 import { HeartbeatService } from '../services/heartbeat.service';
-import { Worker, Job } from 'bullmq';
+import { ExecutorService } from '../services/executor.service';
+import { Worker, Job, Queue } from 'bullmq';
 import Redis from 'ioredis';
 
 // Mock dependencies
 jest.mock('bullmq');
 jest.mock('ioredis');
 jest.mock('../services/heartbeat.service');
+jest.mock('../services/executor.service');
+jest.mock('@anthropic-ai/claude-agent-sdk', () => ({
+  query: jest.fn(),
+}));
 
 describe('WorkerService', () => {
   let workerService: WorkerService;
   let mockRedis: jest.Mocked<Redis>;
   let mockWorker: jest.Mocked<Worker>;
+  let mockQueue: jest.Mocked<Queue>;
   let mockHeartbeat: jest.Mocked<HeartbeatService>;
+  let mockExecutor: jest.Mocked<ExecutorService>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -24,6 +31,15 @@ describe('WorkerService', () => {
     mockHeartbeat = {
       start: jest.fn(),
       stop: jest.fn(),
+      cleanup: jest.fn().mockResolvedValue(undefined),
+    } as any;
+
+    mockExecutor = {
+      executePrompt: jest.fn().mockResolvedValue({
+        stdout: 'Task completed successfully',
+        stderr: '',
+        exitCode: 0,
+      }),
     } as any;
 
     mockWorker = {
@@ -31,8 +47,15 @@ describe('WorkerService', () => {
       close: jest.fn().mockResolvedValue(undefined),
     } as any;
 
+    mockQueue = {
+      add: jest.fn().mockResolvedValue({ id: 'result-123' }),
+      close: jest.fn().mockResolvedValue(undefined),
+    } as any;
+
     (Worker as jest.MockedClass<typeof Worker>).mockImplementation(() => mockWorker);
+    (Queue as jest.MockedClass<typeof Queue>).mockImplementation(() => mockQueue);
     (HeartbeatService as jest.MockedClass<typeof HeartbeatService>).mockImplementation(() => mockHeartbeat);
+    (ExecutorService as jest.MockedClass<typeof ExecutorService>).mockImplementation(() => mockExecutor);
 
     workerService = new WorkerService('test-worker-1', mockRedis, 'test-queue');
   });
@@ -91,7 +114,7 @@ describe('WorkerService', () => {
 
       await workerService.start();
 
-      expect(consoleLogSpy).toHaveBeenCalledWith('Worker test-worker-1 started');
+      expect(consoleLogSpy).toHaveBeenCalledWith('Worker test-worker-1 (local) started and registered');
 
       consoleLogSpy.mockRestore();
     });
@@ -121,11 +144,12 @@ describe('WorkerService', () => {
       const result = await jobProcessor(mockJob);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Worker test-worker-1 received task task-123')
+        expect.stringContaining('Worker test-worker-1 processing task task-123')
       );
       expect(result).toEqual({
         taskId: 'task-123',
-        status: 'submitted',
+        status: 'processed',
+        workerId: 'test-worker-1',
       });
 
       consoleLogSpy.mockRestore();
