@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { QueueModule } from './modules/queue/queue.module';
+import { WorkersModule } from './modules/workers/workers.module';
 import { getDatabaseConfig } from './config/database.config';
 
 @Module({
@@ -18,6 +19,7 @@ import { getDatabaseConfig } from './config/database.config';
     }),
     TasksModule,
     QueueModule,
+    WorkersModule,
   ],
   controllers: [AppController],
   providers: [],

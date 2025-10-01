@@ -100,12 +100,10 @@ export class TasksService {
 
     return {
       total,
-      byStatus: {
-        queued,
-        running,
-        completed,
-        failed,
-      },
+      queued,
+      running,
+      completed,
+      failed,
     };
   }
 }

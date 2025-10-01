@@ -356,12 +356,10 @@ describe('TasksService', () => {
 
       expect(result).toEqual({
         total: 100,
-        byStatus: {
-          queued: 20,
-          running: 5,
-          completed: 70,
-          failed: 5,
-        },
+        queued: 20,
+        running: 5,
+        completed: 70,
+        failed: 5,
       });
       expect(mockRepository.count).toHaveBeenCalledTimes(5);
     });
@@ -373,12 +371,10 @@ describe('TasksService', () => {
 
       expect(result).toEqual({
         total: 0,
-        byStatus: {
-          queued: 0,
-          running: 0,
-          completed: 0,
-          failed: 0,
-        },
+        queued: 0,
+        running: 0,
+        completed: 0,
+        failed: 0,
       });
     });
   });
