@@ -218,7 +218,10 @@ describe('Orchestrator API E2E', () => {
           expect(res.body).toHaveProperty('database');
           expect(res.body).toHaveProperty('queue');
           expect(res.body.database).toHaveProperty('total');
-          expect(res.body.database).toHaveProperty('byStatus');
+          expect(res.body.database).toHaveProperty('queued');
+          expect(res.body.database).toHaveProperty('running');
+          expect(res.body.database).toHaveProperty('completed');
+          expect(res.body.database).toHaveProperty('failed');
         });
     });
   });

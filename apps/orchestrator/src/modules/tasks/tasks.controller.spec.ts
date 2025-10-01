@@ -203,12 +203,10 @@ describe('TasksController', () => {
     it('should return task and queue statistics', async () => {
       const expectedDbStats = {
         total: 100,
-        byStatus: {
-          queued: 20,
-          running: 5,
-          completed: 70,
-          failed: 5,
-        },
+        queued: 20,
+        running: 5,
+        completed: 70,
+        failed: 5,
       };
 
       const expectedQueueStats = {
@@ -234,12 +232,10 @@ describe('TasksController', () => {
     it('should return empty statistics', async () => {
       const expectedDbStats = {
         total: 0,
-        byStatus: {
-          queued: 0,
-          running: 0,
-          completed: 0,
-          failed: 0,
-        },
+        queued: 0,
+        running: 0,
+        completed: 0,
+        failed: 0,
       };
 
       const expectedQueueStats = {
