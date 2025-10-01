@@ -16,53 +16,64 @@ cd "$PROJECT_ROOT"
 echo -e "${BLUE}📊 Claude Orchestrator Status${NC}"
 echo ""
 
-# Check Valkey
-echo -n "Valkey: "
-if docker compose ps valkey | grep -q "Up"; then
-    echo -e "${GREEN}✅ Running${NC}"
-else
-    echo -e "${RED}❌ Stopped${NC}"
+# Check for instances
+if [ ! -d "$PROJECT_ROOT/data" ] || [ -z "$(ls -A $PROJECT_ROOT/data 2>/dev/null)" ]; then
+    echo -e "${YELLOW}No instances found${NC}"
+    exit 0
 fi
 
-# Check Orchestrator
-echo -n "Orchestrator: "
-if [ -f "$PROJECT_ROOT/data/orchestrator.pid" ]; then
-    ORCHESTRATOR_PID=$(cat "$PROJECT_ROOT/data/orchestrator.pid")
-    if kill -0 $ORCHESTRATOR_PID 2>/dev/null; then
-        if curl -s http://localhost:3000/health > /dev/null 2>&1; then
-            echo -e "${GREEN}✅ Running (PID: $ORCHESTRATOR_PID, http://localhost:3000)${NC}"
+for instance_dir in "$PROJECT_ROOT/data"/*; do
+    if [ -d "$instance_dir" ]; then
+        INSTANCE_NAME=$(basename "$instance_dir")
+        echo -e "${BLUE}Instance: ${YELLOW}${INSTANCE_NAME}${NC}"
+
+        # Check Orchestrator
+        echo -n "  Orchestrator: "
+        if [ -f "$instance_dir/orchestrator.pid" ]; then
+            ORCHESTRATOR_PID=$(cat "$instance_dir/orchestrator.pid")
+            if kill -0 $ORCHESTRATOR_PID 2>/dev/null; then
+                echo -e "${GREEN}✅ Running (PID: $ORCHESTRATOR_PID)${NC}"
+            else
+                echo -e "${RED}❌ Stopped (stale PID)${NC}"
+            fi
         else
-            echo -e "${YELLOW}⚠️  Process running but not responding (PID: $ORCHESTRATOR_PID)${NC}"
+            echo -e "${RED}❌ Stopped${NC}"
         fi
-    else
-        echo -e "${RED}❌ Stopped (stale PID file)${NC}"
-    fi
-else
-    echo -e "${RED}❌ Stopped${NC}"
-fi
 
-# Check Worker
-echo -n "Worker: "
-if [ -f "$PROJECT_ROOT/data/worker.pid" ]; then
-    WORKER_PID=$(cat "$PROJECT_ROOT/data/worker.pid")
-    if kill -0 $WORKER_PID 2>/dev/null; then
-        echo -e "${GREEN}✅ Running (PID: $WORKER_PID)${NC}"
-    else
-        echo -e "${RED}❌ Stopped (stale PID file)${NC}"
-    fi
-else
-    echo -e "${RED}❌ Stopped${NC}"
-fi
+        # Check Worker
+        echo -n "  Worker: "
+        if [ -f "$instance_dir/worker.pid" ]; then
+            WORKER_PID=$(cat "$instance_dir/worker.pid")
+            if kill -0 $WORKER_PID 2>/dev/null; then
+                echo -e "${GREEN}✅ Running (PID: $WORKER_PID)${NC}"
+            else
+                echo -e "${RED}❌ Stopped (stale PID)${NC}"
+            fi
+        else
+            echo -e "${RED}❌ Stopped${NC}"
+        fi
 
-echo ""
-echo -e "${BLUE}📝 Recent Logs:${NC}"
-echo ""
-if [ -f "$PROJECT_ROOT/data/orchestrator.log" ]; then
-    echo -e "${BLUE}Orchestrator (last 5 lines):${NC}"
-    tail -n 5 "$PROJECT_ROOT/data/orchestrator.log"
-    echo ""
-fi
-if [ -f "$PROJECT_ROOT/data/worker.log" ]; then
-    echo -e "${BLUE}Worker (last 5 lines):${NC}"
-    tail -n 5 "$PROJECT_ROOT/data/worker.log"
-fi
+        # Check Dashboard
+        echo -n "  Dashboard: "
+        if [ -f "$instance_dir/dashboard.pid" ]; then
+            DASHBOARD_PID=$(cat "$instance_dir/dashboard.pid")
+            if kill -0 $DASHBOARD_PID 2>/dev/null; then
+                echo -e "${GREEN}✅ Running (PID: $DASHBOARD_PID)${NC}"
+            else
+                echo -e "${RED}❌ Stopped (stale PID)${NC}"
+            fi
+        else
+            echo -e "${RED}❌ Stopped${NC}"
+        fi
+
+        # Check Docker
+        echo -n "  Docker: "
+        if docker compose -p "claude-orchestrator-$INSTANCE_NAME" ps | grep -q "Up"; then
+            echo -e "${GREEN}✅ Running${NC}"
+        else
+            echo -e "${RED}❌ Stopped${NC}"
+        fi
+
+        echo ""
+    fi
+done

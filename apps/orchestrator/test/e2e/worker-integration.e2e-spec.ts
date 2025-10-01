@@ -9,7 +9,7 @@ import { QueueModule } from '../../src/modules/queue/queue.module';
 import { TasksService } from '../../src/modules/tasks/tasks.service';
 import { QueueService } from '../../src/modules/queue/queue.service';
 import { TaskEntity } from '../../src/modules/tasks/entities/task.entity';
-import { TaskStatus } from '@shared/types';
+import { TaskStatus } from '@claude-orchestrator/shared';
 
 /**
  * End-to-End Integration Tests

@@ -12,14 +12,14 @@ Create simple web dashboard with HTML/CSS/JavaScript to monitor system status, v
 
 ## Acceptance Criteria
 
-- [ ] Dashboard displays task statistics (total, queued, running, completed, failed)
-- [ ] Dashboard shows queue statistics (waiting, active)
-- [ ] Dashboard lists active workers with last heartbeat
-- [ ] Dashboard shows recent tasks in table format
-- [ ] Dashboard includes form to create new tasks
-- [ ] Auto-refresh updates data every 5 seconds
-- [ ] Dashboard served on port 3001
-- [ ] Responsive design works on mobile
+- [x] Dashboard displays task statistics (total, queued, running, completed, failed)
+- [x] Dashboard shows queue statistics (waiting, active)
+- [x] Dashboard lists active workers with last heartbeat
+- [x] Dashboard shows recent tasks in table format
+- [x] Dashboard includes form to create new tasks
+- [x] Auto-refresh updates data every 5 seconds
+- [x] Dashboard served on port 3001
+- [x] Responsive design works on mobile
 
 ## Technical Specification
 
@@ -353,14 +353,14 @@ Verify:
 
 ## Subtasks
 
-- [ ] TASK-005-1: Create HTML structure
-- [ ] TASK-005-2: Create CSS styles
-- [ ] TASK-005-3: Implement JavaScript data loading
-- [ ] TASK-005-4: Implement auto-refresh
-- [ ] TASK-005-5: Create task submission form
-- [ ] TASK-005-6: Create simple HTTP server
-- [ ] TASK-005-7: Test on desktop browser
-- [ ] TASK-005-8: Test on mobile browser
+- [x] TASK-005-1: Create HTML structure
+- [x] TASK-005-2: Create CSS styles
+- [x] TASK-005-3: Implement JavaScript data loading
+- [x] TASK-005-4: Implement auto-refresh
+- [x] TASK-005-5: Create task submission form
+- [x] TASK-005-6: Create simple HTTP server
+- [x] TASK-005-7: Test on desktop browser
+- [x] TASK-005-8: Test on mobile browser
 
 ## Definition of Done
 

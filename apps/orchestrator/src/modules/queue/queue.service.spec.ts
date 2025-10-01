@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { QueueService } from './queue.service';
 import { TasksService } from '../tasks/tasks.service';
-import { TaskStatus } from '@shared/types';
+import { TaskStatus } from '@claude-orchestrator/shared';
 
 // Create mock instances
 const mockQueue = {

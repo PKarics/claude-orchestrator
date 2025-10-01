@@ -52,6 +52,19 @@ if [ -f "$INSTANCE_DATA_DIR/worker.pid" ]; then
     fi
 fi
 
+# Stop dashboard
+if [ -f "$INSTANCE_DATA_DIR/dashboard.pid" ]; then
+    DASHBOARD_PID=$(cat "$INSTANCE_DATA_DIR/dashboard.pid")
+    if kill -0 $DASHBOARD_PID 2>/dev/null; then
+        echo -e "${BLUE}Stopping dashboard (PID: $DASHBOARD_PID)...${NC}"
+        kill $DASHBOARD_PID
+        rm "$INSTANCE_DATA_DIR/dashboard.pid"
+    else
+        echo -e "${YELLOW}Dashboard not running (removing stale PID file)${NC}"
+        rm "$INSTANCE_DATA_DIR/dashboard.pid"
+    fi
+fi
+
 # Stop Docker containers
 echo -e "${BLUE}Stopping Docker containers...${NC}"
 docker compose -p "claude-orchestrator-$INSTANCE_NAME" down

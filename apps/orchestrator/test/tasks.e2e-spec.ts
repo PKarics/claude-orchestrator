@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
-import { TaskStatus } from '../src/types/task-status.enum';
+import { TaskStatus } from '@claude-orchestrator/shared';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { TaskEntity } from '../src/modules/tasks/entities/task.entity';
 import { Repository } from 'typeorm';
