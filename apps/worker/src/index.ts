@@ -29,6 +29,7 @@ async function main() {
       options.id,
       redis,
       process.env.QUEUE_NAME || 'claude-tasks',
+      options.type,
     );
 
     await worker.start();

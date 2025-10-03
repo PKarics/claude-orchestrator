@@ -42,6 +42,23 @@ export class QueueService implements OnModuleInit, OnModuleDestroy {
       },
     });
 
+    // Listen for when jobs become active (picked up by a worker)
+    const queueEvents = new (await import('bullmq')).QueueEvents(this.queueName, {
+      connection: redisConfig.connection,
+    });
+
+    queueEvents.on('active', async ({ jobId }) => {
+      try {
+        // Mark task as running when a worker picks it up
+        await this.tasksService.update(jobId, {
+          status: TaskStatus.RUNNING,
+        });
+        this.logger.log(`Task ${jobId} picked up by worker`);
+      } catch (error) {
+        this.logger.error(`Failed to update task ${jobId} to RUNNING: ${error.message}`);
+      }
+    });
+
     // Initialize result worker
     this.resultWorker = new Worker<QueueJobResult>(
       `${this.queueName}-results`,
@@ -82,16 +99,22 @@ export class QueueService implements OnModuleInit, OnModuleDestroy {
 
   private async processResult(result: QueueJobResult): Promise<void> {
     try {
-      const updateData = {
+      const updateData: any = {
         status: result.status === 'completed' ? TaskStatus.COMPLETED : TaskStatus.FAILED,
         workerId: result.workerId,
-        result: result.result,
-        errorMessage: result.errorMessage,
         completedAt: new Date(),
       };
 
+      // Add result or error message based on status
+      if (result.result) {
+        updateData.result = result.result;
+      }
+      if (result.errorMessage) {
+        updateData.errorMessage = result.errorMessage;
+      }
+
       await this.tasksService.update(result.taskId, updateData);
-      this.logger.log(`Task ${result.taskId} updated with status ${updateData.status}`);
+      this.logger.log(`Task ${result.taskId} completed by worker ${result.workerId} with status ${updateData.status}`);
     } catch (error) {
       this.logger.error(`Failed to process result for task ${result.taskId}: ${error.message}`);
       throw error;

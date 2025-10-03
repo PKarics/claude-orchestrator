@@ -1,29 +1,12 @@
 import { TaskResult } from '@claude-orchestrator/shared';
+import { query } from '@anthropic-ai/claude-agent-sdk';
 
-// Type definitions for Claude Agent SDK (to be replaced with actual SDK types when available)
+// Type for SDK messages (inferred from SDK usage)
 type SDKMessage = {
   type: string;
   content?: string;
   [key: string]: any;
 };
-
-type QueryOptions = {
-  prompt: string;
-  options?: {
-    maxTurns?: number;
-    allowedTools?: string[];
-  };
-};
-
-// Placeholder for query function - will be replaced with actual SDK implementation
-async function* queryPlaceholder(options: QueryOptions): AsyncGenerator<SDKMessage> {
-  // This is a placeholder implementation
-  // Real implementation will use @anthropic-ai/claude-agent-sdk
-  yield {
-    type: 'text',
-    content: `Placeholder response for: ${options.prompt}`,
-  };
-}
 
 export class ExecutorService {
   /**
@@ -35,6 +18,7 @@ export class ExecutorService {
   async executePrompt(prompt: string, timeout: number): Promise<TaskResult> {
     const messages: SDKMessage[] = [];
     let aborted = false;
+    let hasErrors = false;
 
     // Set timeout
     const timeoutHandle = setTimeout(() => {
@@ -42,8 +26,8 @@ export class ExecutorService {
     }, timeout * 1000);
 
     try {
-      // Execute prompt using Claude Agent SDK placeholder
-      for await (const message of queryPlaceholder({
+      // Execute prompt using Claude Agent SDK
+      for await (const message of query({
         prompt,
         options: {
           maxTurns: 10,
@@ -51,7 +35,12 @@ export class ExecutorService {
         },
       })) {
         if (aborted) break;
-        messages.push(message);
+        messages.push(message as SDKMessage);
+
+        // Track if there are any errors
+        if (message.type === 'result' && 'error' in message) {
+          hasErrors = true;
+        }
       }
 
       clearTimeout(timeoutHandle);
@@ -59,7 +48,7 @@ export class ExecutorService {
       // Extract result from messages
       const stdout = this.extractOutput(messages);
       const stderr = this.extractErrors(messages);
-      const exitCode = aborted ? 124 : 0; // 124 is timeout exit code
+      const exitCode = aborted ? 124 : (hasErrors || stderr ? 1 : 0); // 124 is timeout exit code
 
       return { stdout, stderr, exitCode };
     } catch (error) {
@@ -78,8 +67,17 @@ export class ExecutorService {
    */
   private extractOutput(messages: SDKMessage[]): string {
     return messages
-      .filter((msg) => msg.type === 'text' || msg.type === 'assistant')
-      .map((msg) => ('content' in msg ? msg.content : ''))
+      .filter((msg) => msg.type === 'assistant' || msg.type === 'result')
+      .map((msg) => {
+        if (msg.type === 'assistant' && msg.content) {
+          return msg.content;
+        }
+        if (msg.type === 'result' && 'output' in msg) {
+          return String(msg.output);
+        }
+        return '';
+      })
+      .filter(Boolean)
       .join('\n');
   }
 
@@ -87,9 +85,14 @@ export class ExecutorService {
    * Extract error messages from SDK messages
    */
   private extractErrors(messages: SDKMessage[]): string {
-    return messages
-      .filter((msg) => msg.type === 'error')
-      .map((msg) => ('content' in msg ? msg.content : ''))
-      .join('\n');
+    const errors: string[] = [];
+
+    for (const msg of messages) {
+      if (msg.type === 'result' && 'error' in msg) {
+        errors.push(String(msg.error));
+      }
+    }
+
+    return errors.join('\n');
   }
 }
