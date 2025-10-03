@@ -6,6 +6,7 @@
     "build": "pnpm -r build",
     "dev": "pnpm -r --parallel dev",
     "start": "./scripts/start.sh",
+    "postinstall": "pnpm rebuild better-sqlite3",
     "stop": "./scripts/stop-all.sh",
     "status": "./scripts/status.sh",
     "start:instance": "./scripts/start-instance.sh",

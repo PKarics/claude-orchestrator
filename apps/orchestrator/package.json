@@ -5,6 +5,7 @@
     "build": "tsc",
     "dev": "tsc && node --watch dist/main.js",
     "start": "node dist/main.js",
+    "postinstall": "cd ../../ && pnpm rebuild better-sqlite3",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage"

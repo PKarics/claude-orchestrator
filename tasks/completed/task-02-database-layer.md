@@ -91,7 +91,7 @@ export const getDatabaseConfig = (
 `src/modules/tasks/entities/task.entity.ts`:
 ```typescript
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm';
-import { TaskStatus } from '@shared/types';
+import { TaskStatus } from '@claude-orchestrator/shared';
 
 @Entity('tasks')
 @Index(['status'])

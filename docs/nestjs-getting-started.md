@@ -245,7 +245,7 @@ packages:
 
 In orchestrator or worker:
 ```typescript
-import { Task, TaskStatus, CreateTaskDto } from '@shared/types';
+import { Task, TaskStatus, CreateTaskDto } from '@claude-orchestrator/shared';
 
 const task: Task = {
   id: '123',

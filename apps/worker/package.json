@@ -1,6 +1,7 @@
 {
   "name": "@claude-orchestrator/worker",
   "version": "0.1.0",
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "dev": "tsx watch src/index.ts",

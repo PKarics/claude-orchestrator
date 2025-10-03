@@ -1,7 +1,7 @@
 import { Worker, Job, Queue } from 'bullmq';
 import Redis from 'ioredis';
-import { HeartbeatService } from './heartbeat.service';
-import { ExecutorService } from './executor.service';
+import { HeartbeatService } from './heartbeat.service.js';
+import { ExecutorService } from './executor.service.js';
 
 export class WorkerService {
   private worker!: Worker;

@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { config } from 'dotenv';
-import { WorkerService } from './services/worker.service';
-import { createRedisConnection } from './utils/redis.util';
+import { WorkerService } from './services/worker.service.js';
+import { createRedisConnection } from './utils/redis.util.js';
 
 config({ path: '../../.env' });
 
