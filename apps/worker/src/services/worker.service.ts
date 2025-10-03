@@ -1,20 +1,30 @@
-import { Worker, Job } from 'bullmq';
+import { Worker, Job, Queue } from 'bullmq';
 import Redis from 'ioredis';
 import { HeartbeatService } from './heartbeat.service';
+import { ExecutorService } from './executor.service';
 
 export class WorkerService {
   private worker!: Worker;
+  private resultQueue!: Queue;
   private heartbeat: HeartbeatService;
+  private executor: ExecutorService;
 
   constructor(
     private workerId: string,
     private redis: Redis,
     private queueName: string,
+    private workerType: string = 'local',
   ) {
-    this.heartbeat = new HeartbeatService(redis, workerId);
+    this.heartbeat = new HeartbeatService(redis, workerId, workerType);
+    this.executor = new ExecutorService();
   }
 
   async start() {
+    // Initialize result queue
+    this.resultQueue = new Queue(`${this.queueName}-results`, {
+      connection: this.redis,
+    });
+
     // Initialize worker
     this.worker = new Worker(
       this.queueName,
@@ -31,36 +41,71 @@ export class WorkerService {
       console.error('Worker error:', error);
     });
 
-    // Start heartbeat
+    // Start heartbeat (this also registers the worker)
     this.heartbeat.start();
 
     // Handle shutdown
     process.on('SIGTERM', () => this.shutdown());
     process.on('SIGINT', () => this.shutdown());
 
-    console.log(`Worker ${this.workerId} started`);
+    console.log(`Worker ${this.workerId} (${this.workerType}) started and registered`);
   }
 
   private async processJob(job: Job) {
-    const { taskId, prompt } = job.data;
+    const { taskId, prompt, timeout = 300 } = job.data;
+    const startTime = Date.now();
 
     if (!prompt) {
       throw new Error('Missing required field: prompt');
     }
 
-    // Submit prompt to Claude Code and return immediately
-    // The worker will handle the prompt asynchronously
-    console.log(`Worker ${this.workerId} received task ${taskId} with prompt: ${prompt.substring(0, 100)}...`);
+    console.log(`Worker ${this.workerId} processing task ${taskId} with prompt: ${prompt.substring(0, 100)}...`);
 
-    // TODO: Submit to Claude Code API
-    // For now, just acknowledge receipt
-    return { taskId, status: 'submitted' };
+    try {
+      // Execute the prompt using Claude Agent SDK
+      const result = await this.executor.executePrompt(prompt, timeout);
+      const executionTimeMs = Date.now() - startTime;
+
+      // Send result to result queue
+      await this.resultQueue.add('process-result', {
+        taskId,
+        workerId: this.workerId,
+        status: result.exitCode === 0 ? 'completed' : 'failed',
+        result: result.stdout,
+        errorMessage: result.stderr || undefined,
+        executionTimeMs,
+      });
+
+      console.log(`Worker ${this.workerId} completed task ${taskId} in ${executionTimeMs}ms`);
+
+      // Return acknowledgment that job was processed
+      return { taskId, workerId: this.workerId, status: 'processed' };
+    } catch (error) {
+      const executionTimeMs = Date.now() - startTime;
+      const errorMessage = error instanceof Error ? error.message : String(error);
+
+      console.error(`Worker ${this.workerId} failed task ${taskId}:`, errorMessage);
+
+      // Send failure result to result queue
+      await this.resultQueue.add('process-result', {
+        taskId,
+        workerId: this.workerId,
+        status: 'failed',
+        errorMessage,
+        executionTimeMs,
+      });
+
+      // Re-throw so BullMQ can handle retry logic
+      throw error;
+    }
   }
 
-  private async shutdown() {
+  async shutdown() {
     console.log('Shutting down...');
     await this.worker.close();
+    await this.resultQueue.close();
     this.heartbeat.stop();
+    await this.heartbeat.cleanup();
     await this.redis.quit();
     process.exit(0);
   }

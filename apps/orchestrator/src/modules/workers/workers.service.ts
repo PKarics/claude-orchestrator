@@ -40,6 +40,10 @@ export class WorkersService {
         // Extract worker ID from key (worker:{id}:heartbeat)
         const workerId = key.split(':')[1];
 
+        // Get worker type from Redis
+        const typeKey = `worker:${workerId}:type`;
+        const workerType = await this.redis.get(typeKey);
+
         // Calculate time since last heartbeat
         const heartbeatTime = new Date(lastHeartbeat).getTime();
         const timeSinceHeartbeat = now - heartbeatTime;
@@ -57,7 +61,7 @@ export class WorkersService {
 
         workers.push({
           id: workerId,
-          type: workerId.includes('cloud') ? 'cloud' : 'local',
+          type: workerType || 'local', // Use stored type or default to 'local'
           status,
           lastHeartbeat,
         });
@@ -66,6 +70,37 @@ export class WorkersService {
       return workers;
     } catch (error) {
       this.logger.error(`Failed to get workers: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async registerWorker(workerId: string, workerType: string): Promise<void> {
+    try {
+      const heartbeatKey = `worker:${workerId}:heartbeat`;
+      const typeKey = `worker:${workerId}:type`;
+
+      // Store initial heartbeat and type
+      await this.redis.setex(heartbeatKey, 30, new Date().toISOString());
+      await this.redis.setex(typeKey, 30, workerType);
+
+      this.logger.log(`Worker ${workerId} (${workerType}) registered`);
+    } catch (error) {
+      this.logger.error(`Failed to register worker ${workerId}: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async deregisterWorker(workerId: string): Promise<void> {
+    try {
+      const heartbeatKey = `worker:${workerId}:heartbeat`;
+      const typeKey = `worker:${workerId}:type`;
+
+      // Remove worker data from Redis
+      await this.redis.del(heartbeatKey, typeKey);
+
+      this.logger.log(`Worker ${workerId} deregistered`);
+    } catch (error) {
+      this.logger.error(`Failed to deregister worker ${workerId}: ${error.message}`);
       throw error;
     }
   }

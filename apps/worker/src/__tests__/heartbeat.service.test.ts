@@ -13,7 +13,7 @@ describe('HeartbeatService', () => {
       setex: jest.fn().mockResolvedValue('OK'),
     } as any;
 
-    heartbeatService = new HeartbeatService(mockRedis, 'test-worker-1', 10);
+    heartbeatService = new HeartbeatService(mockRedis, 'test-worker-1', 'local', 10);
     jest.clearAllMocks();
     jest.useFakeTimers();
   });
@@ -76,7 +76,7 @@ describe('HeartbeatService', () => {
     });
 
     it('should use custom interval when provided', () => {
-      const customService = new HeartbeatService(mockRedis, 'test-worker-2', 5);
+      const customService = new HeartbeatService(mockRedis, 'test-worker-2', 'local', 5);
       customService.start();
 
       expect(mockRedis.setex).toHaveBeenCalledTimes(1);
@@ -177,7 +177,7 @@ describe('HeartbeatService', () => {
 
   describe('worker identification', () => {
     it('should use correct worker ID in Redis key', () => {
-      const service1 = new HeartbeatService(mockRedis, 'worker-alpha', 10);
+      const service1 = new HeartbeatService(mockRedis, 'worker-alpha', 'local', 10);
       service1.start();
 
       expect(mockRedis.setex).toHaveBeenCalledWith(
@@ -190,7 +190,7 @@ describe('HeartbeatService', () => {
     });
 
     it('should handle special characters in worker ID', () => {
-      const service = new HeartbeatService(mockRedis, 'worker-123_test.local', 10);
+      const service = new HeartbeatService(mockRedis, 'worker-123_test.local', 'local', 10);
       service.start();
 
       expect(mockRedis.setex).toHaveBeenCalledWith(
@@ -205,14 +205,14 @@ describe('HeartbeatService', () => {
 
   describe('edge cases', () => {
     it('should handle interval being null when stopping', () => {
-      const service = new HeartbeatService(mockRedis, 'test-worker', 10);
+      const service = new HeartbeatService(mockRedis, 'test-worker', 'local', 10);
 
       // Stop without starting
       expect(() => service.stop()).not.toThrow();
     });
 
     it('should clear existing interval when stopping multiple times', () => {
-      const service = new HeartbeatService(mockRedis, 'test-worker', 10);
+      const service = new HeartbeatService(mockRedis, 'test-worker', 'local', 10);
       service.start();
 
       service.stop();

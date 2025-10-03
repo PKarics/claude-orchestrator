@@ -6,6 +6,7 @@ export class HeartbeatService {
   constructor(
     private redis: Redis,
     private workerId: string,
+    private workerType: string = 'local',
     private intervalSeconds: number = 10,
   ) {}
 
@@ -23,10 +24,28 @@ export class HeartbeatService {
 
   private async sendHeartbeat() {
     try {
-      const key = `worker:${this.workerId}:heartbeat`;
-      await this.redis.setex(key, 30, new Date().toISOString());
+      const heartbeatKey = `worker:${this.workerId}:heartbeat`;
+      const typeKey = `worker:${this.workerId}:type`;
+
+      // Store heartbeat timestamp with TTL
+      await this.redis.setex(heartbeatKey, 30, new Date().toISOString());
+
+      // Store worker type with TTL
+      await this.redis.setex(typeKey, 30, this.workerType);
     } catch (error) {
       console.error('Failed to send heartbeat:', error);
+    }
+  }
+
+  async cleanup() {
+    try {
+      const heartbeatKey = `worker:${this.workerId}:heartbeat`;
+      const typeKey = `worker:${this.workerId}:type`;
+
+      // Remove worker data from Redis on shutdown
+      await this.redis.del(heartbeatKey, typeKey);
+    } catch (error) {
+      console.error('Failed to cleanup worker data:', error);
     }
   }
 }
