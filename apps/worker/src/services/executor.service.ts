@@ -35,6 +35,10 @@ export class ExecutorService {
         },
       })) {
         if (aborted) break;
+
+        // Log message type for debugging
+        console.log(`[Executor] Received message type: ${message.type}`);
+
         messages.push(message as SDKMessage);
 
         // Track if there are any errors
@@ -45,10 +49,22 @@ export class ExecutorService {
 
       clearTimeout(timeoutHandle);
 
+      // Log all message types for debugging
+      console.log('[Executor] Total messages received:', messages.length);
+      console.log('[Executor] Message types:', messages.map(m => m.type).join(', '));
+
+      // Log full message structure for ALL messages
+      messages.forEach((msg, idx) => {
+        console.log(`[Executor] Message ${idx} (${msg.type}):`, JSON.stringify(msg, null, 2));
+      });
+
       // Extract result from messages
       const stdout = this.extractOutput(messages);
       const stderr = this.extractErrors(messages);
       const exitCode = aborted ? 124 : (hasErrors || stderr ? 1 : 0); // 124 is timeout exit code
+
+      console.log('[Executor] Extracted stdout length:', stdout.length);
+      console.log('[Executor] Extracted stderr length:', stderr.length);
 
       return { stdout, stderr, exitCode };
     } catch (error) {
@@ -66,19 +82,29 @@ export class ExecutorService {
    * Extract output text from SDK messages
    */
   private extractOutput(messages: SDKMessage[]): string {
-    return messages
-      .filter((msg) => msg.type === 'assistant' || msg.type === 'result')
-      .map((msg) => {
-        if (msg.type === 'assistant' && msg.content) {
-          return msg.content;
+    // First, check if there's a result message (final summary)
+    // If so, use only that to avoid duplication
+    const resultMessage = messages.find(msg => msg.type === 'result');
+    if (resultMessage && resultMessage.result) {
+      return String(resultMessage.result);
+    }
+
+    // Fallback: extract from assistant messages if no result message
+    const outputs: string[] = [];
+    for (const msg of messages) {
+      if (msg.type === 'assistant' && msg.message?.content) {
+        const content = msg.message.content;
+        if (Array.isArray(content)) {
+          for (const item of content) {
+            if (item.type === 'text' && item.text) {
+              outputs.push(String(item.text));
+            }
+          }
         }
-        if (msg.type === 'result' && 'output' in msg) {
-          return String(msg.output);
-        }
-        return '';
-      })
-      .filter(Boolean)
-      .join('\n');
+      }
+    }
+
+    return outputs.filter(Boolean).join('\n\n');
   }
 
   /**

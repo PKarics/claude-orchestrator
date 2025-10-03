@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import type { Task } from '../types';
+import { TaskDetailModal } from './TaskDetailModal';
 
 interface TasksTableProps {
   tasks: Task[];
 }
 
 export function TasksTable({ tasks }: TasksTableProps) {
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   if (tasks.length === 0) {
     return (
       <div className="section">
@@ -39,7 +42,7 @@ export function TasksTable({ tasks }: TasksTableProps) {
             };
 
             return (
-              <tr key={task.id}>
+              <tr key={task.id} onClick={() => setSelectedTask(task)} style={{ cursor: 'pointer' }}>
                 <td title={task.id}>{task.id.substring(0, 8)}</td>
                 <td>
                   <span className={`status-badge ${task.status}`}>
@@ -77,6 +80,7 @@ export function TasksTable({ tasks }: TasksTableProps) {
           })}
         </tbody>
       </table>
+      <TaskDetailModal task={selectedTask} onClose={() => setSelectedTask(null)} />
     </div>
   );
 }
