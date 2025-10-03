@@ -11,6 +11,7 @@ export interface TaskStats {
     running: number;
     completed: number;
     failed: number;
+    timeout: number;
   };
   queue: {
     waiting: number;
@@ -23,9 +24,10 @@ export interface Task {
   status: 'queued' | 'running' | 'completed' | 'failed' | 'timeout';
   prompt: string;
   code?: string;
+  timeout: number;
   workerId?: string;
   result?: string;
-  error?: string;
+  errorMessage?: string;
   createdAt: string;
   startedAt?: string;
   completedAt?: string;
@@ -39,7 +41,7 @@ export interface Worker {
 }
 
 export interface CreateTaskDto {
-  code: string;
   prompt: string;
+  code?: string;
   timeout?: number;
 }

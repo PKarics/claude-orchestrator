@@ -19,8 +19,8 @@ export function CreateTaskForm({ onSubmit }: CreateTaskFormProps) {
 
     try {
       await onSubmit({
-        code,
         prompt,
+        code: code || undefined,
         timeout: parseInt(timeout),
       });
       // Reset form on success
@@ -40,24 +40,24 @@ export function CreateTaskForm({ onSubmit }: CreateTaskFormProps) {
       {error && <div className="error-message">{error}</div>}
       <form className="form" onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="code">Code</label>
+          <label htmlFor="prompt">Prompt (required)</label>
+          <textarea
+            id="prompt"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Enter task prompt for Claude Code"
+            required
+            rows={3}
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="code">Code (optional)</label>
           <textarea
             id="code"
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            placeholder="Enter code to execute"
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="prompt">Prompt</label>
-          <input
-            type="text"
-            id="prompt"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Task description"
-            required
+            placeholder="Optional code to execute"
+            rows={5}
           />
         </div>
         <div className="form-group">

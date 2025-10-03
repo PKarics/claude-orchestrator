@@ -15,6 +15,7 @@ export class TasksService {
     const task = this.taskRepository.create({
       ...dto,
       status: TaskStatus.QUEUED,
+      timeout: dto.timeout || 300, // Default 5 minutes if not specified
     });
     return this.taskRepository.save(task);
   }
@@ -61,6 +62,9 @@ export class TasksService {
       if (dto.status === TaskStatus.RUNNING && !task.startedAt) {
         task.startedAt = new Date();
       }
+      if ((dto.status === TaskStatus.COMPLETED || dto.status === TaskStatus.FAILED || dto.status === TaskStatus.TIMEOUT) && !task.completedAt) {
+        task.completedAt = new Date();
+      }
     }
 
     Object.assign(task, dto);
@@ -70,9 +74,9 @@ export class TasksService {
   async remove(id: string): Promise<void> {
     const task = await this.findOne(id);
 
-    // Only allow deleting completed or failed tasks
-    if (task.status !== TaskStatus.COMPLETED && task.status !== TaskStatus.FAILED) {
-      throw new BadRequestException('Can only delete completed or failed tasks');
+    // Only allow deleting completed, failed, or timed out tasks
+    if (task.status !== TaskStatus.COMPLETED && task.status !== TaskStatus.FAILED && task.status !== TaskStatus.TIMEOUT) {
+      throw new BadRequestException('Can only delete completed, failed, or timed out tasks');
     }
 
     await this.taskRepository.remove(task);
@@ -85,12 +89,14 @@ export class TasksService {
       running,
       completed,
       failed,
+      timeout,
     ] = await Promise.all([
       this.taskRepository.count(),
       this.taskRepository.count({ where: { status: TaskStatus.QUEUED } }),
       this.taskRepository.count({ where: { status: TaskStatus.RUNNING } }),
       this.taskRepository.count({ where: { status: TaskStatus.COMPLETED } }),
       this.taskRepository.count({ where: { status: TaskStatus.FAILED } }),
+      this.taskRepository.count({ where: { status: TaskStatus.TIMEOUT } }),
     ]);
 
     return {
@@ -99,6 +105,7 @@ export class TasksService {
       running,
       completed,
       failed,
+      timeout,
     };
   }
 }

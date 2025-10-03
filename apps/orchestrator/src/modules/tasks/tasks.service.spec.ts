@@ -60,6 +60,7 @@ describe('TasksService', () => {
       expect(mockRepository.create).toHaveBeenCalledWith({
         ...createTaskDto,
         status: TaskStatus.QUEUED,
+        timeout: 300,
       });
       expect(mockRepository.save).toHaveBeenCalledWith(expectedTask);
       expect(result).toEqual(expectedTask);
@@ -269,7 +270,7 @@ describe('TasksService', () => {
 
       await expect(service.remove('123')).rejects.toThrow(BadRequestException);
       await expect(service.remove('123')).rejects.toThrow(
-        'Can only delete completed or failed tasks',
+        'Can only delete completed, failed, or timed out tasks',
       );
     });
 
@@ -288,7 +289,8 @@ describe('TasksService', () => {
         .mockResolvedValueOnce(20) // queued
         .mockResolvedValueOnce(5) // running
         .mockResolvedValueOnce(70) // completed
-        .mockResolvedValueOnce(5); // failed
+        .mockResolvedValueOnce(5) // failed
+        .mockResolvedValueOnce(0); // timeout
 
       const result = await service.getStatistics();
 
@@ -298,8 +300,9 @@ describe('TasksService', () => {
         running: 5,
         completed: 70,
         failed: 5,
+        timeout: 0,
       });
-      expect(mockRepository.count).toHaveBeenCalledTimes(5);
+      expect(mockRepository.count).toHaveBeenCalledTimes(6);
     });
 
     it('should return zero statistics when no tasks exist', async () => {
@@ -313,6 +316,7 @@ describe('TasksService', () => {
         running: 0,
         completed: 0,
         failed: 0,
+        timeout: 0,
       });
     });
   });

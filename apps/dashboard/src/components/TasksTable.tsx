@@ -24,25 +24,57 @@ export function TasksTable({ tasks }: TasksTableProps) {
             <th>Status</th>
             <th>Prompt</th>
             <th>Worker</th>
-            <th>Created</th>
+            <th>Duration</th>
+            <th>Result/Error</th>
           </tr>
         </thead>
         <tbody>
-          {tasks.map((task) => (
-            <tr key={task.id}>
-              <td>{task.id.substring(0, 8)}</td>
-              <td>
-                <span className={`status-badge ${task.status}`}>
-                  {task.status}
-                </span>
-              </td>
-              <td>{task.prompt}</td>
-              <td>
-                {task.workerId ? task.workerId.substring(0, 8) : '-'}
-              </td>
-              <td>{new Date(task.createdAt).toLocaleString()}</td>
-            </tr>
-          ))}
+          {tasks.map((task) => {
+            const getDuration = () => {
+              if (!task.startedAt) return '-';
+              const start = new Date(task.startedAt).getTime();
+              const end = task.completedAt ? new Date(task.completedAt).getTime() : Date.now();
+              const duration = Math.round((end - start) / 1000);
+              return `${duration}s`;
+            };
+
+            return (
+              <tr key={task.id}>
+                <td title={task.id}>{task.id.substring(0, 8)}</td>
+                <td>
+                  <span className={`status-badge ${task.status}`}>
+                    {task.status}
+                  </span>
+                </td>
+                <td title={task.prompt}>
+                  {task.prompt.length > 50
+                    ? `${task.prompt.substring(0, 50)}...`
+                    : task.prompt}
+                </td>
+                <td>
+                  {task.workerId ? task.workerId.substring(0, 8) : '-'}
+                </td>
+                <td>{getDuration()}</td>
+                <td>
+                  {task.errorMessage ? (
+                    <span className="error-text" title={task.errorMessage}>
+                      {task.errorMessage.length > 30
+                        ? `${task.errorMessage.substring(0, 30)}...`
+                        : task.errorMessage}
+                    </span>
+                  ) : task.result ? (
+                    <span className="success-text" title={task.result}>
+                      {task.result.length > 30
+                        ? `${task.result.substring(0, 30)}...`
+                        : task.result}
+                    </span>
+                  ) : (
+                    '-'
+                  )}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

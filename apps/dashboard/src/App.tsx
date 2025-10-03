@@ -5,7 +5,7 @@ import { WorkersList } from './components/WorkersList';
 import { TasksTable } from './components/TasksTable';
 import { CreateTaskForm } from './components/CreateTaskForm';
 import { ApiService } from './services/api';
-import type { Instance, TaskStats, Task, Worker } from './types';
+import type { Instance, TaskStats, Task, Worker, CreateTaskDto } from './types';
 import './App.css';
 
 const REFRESH_INTERVAL = 5000;
@@ -103,11 +103,7 @@ function App() {
     setCurrentInstance(instance);
   };
 
-  const handleCreateTask = async (taskData: {
-    code: string;
-    prompt: string;
-    timeout?: number;
-  }) => {
+  const handleCreateTask = async (taskData: CreateTaskDto) => {
     if (!api) throw new Error('No instance selected');
     await api.createTask(taskData);
     // Reload data after creating task
